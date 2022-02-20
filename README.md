@@ -1,3 +1,9 @@
+This is a fork to show my personal changes.<br>
+Some may rely on my CSS changes, so they are meant to get inspiration to do something differently, not to be used as is (though it may work, with luck).<br>
+Below is the normal README.md from the ordinary project.
+
+---
+
 <h1>Custom JS scripts for Firefox 60+ and Thunderbird 68+</h1>
 The <a href='https://github.com/Aris-t2/CustomJSforFx/wiki'>Wiki</a> contains a feature list (with screenshots).  
 <h1>Unlock custom CSS usage in Firefox 69 and newer</h1>  
