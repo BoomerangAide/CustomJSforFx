@@ -16,19 +16,19 @@ var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", 
 var appversion = parseInt(Services.appinfo.version);
 var menuicon = false;
 var appmenuicon = false;
+var use_appmenu = false;
 
 var RestartMenuFileAppItems = {
   init: function() {
 
-	var button_label = "Restart";
-	
+	var button_label = "Red\u00E9marrer";
+
 	try {
 	  restartitem_filemenu = document.createXULElement("menuitem");
 	  if(menuicon) restartitem_filemenu.setAttribute("class","menuitem-iconic");
 	  restartitem_filemenu.setAttribute("label", button_label);
 	  restartitem_filemenu.setAttribute("id","fileMenu-restart-item");
 	  restartitem_filemenu.setAttribute("accesskey", "R");
-	  restartitem_filemenu.setAttribute("acceltext", "R");
 	  restartitem_filemenu.setAttribute("insertbefore", "menu_FileQuitItem");
 	  restartitem_filemenu.setAttribute("onclick", "if (event.button == 0) {RestartMenuFileAppItems.restartApp(false);} else if (event.button == 1) {RestartMenuFileAppItems.restartApp(true)};");
 	  restartitem_filemenu.setAttribute("oncommand", "RestartMenuFileAppItems.restartApp(false);");
@@ -37,38 +37,43 @@ var RestartMenuFileAppItems = {
 		document.getElementById("menu_FileQuitItem").parentNode.insertBefore(restartitem_filemenu,document.getElementById("menu_FileQuitItem"));
 	} catch(e) {}
 
-	try {
-	  restartitem_appmenu = document.createXULElement("toolbarbutton");
-	  restartitem_appmenu.setAttribute("label", button_label);
-	  restartitem_appmenu.setAttribute("id","appMenu-restart-button");
-	  if(appmenuicon) restartitem_appmenu.setAttribute("class","subviewbutton subviewbutton-iconic");
-	    else restartitem_appmenu.setAttribute("class","subviewbutton");
-	  restartitem_appmenu.setAttribute("accesskey", "R");
-	  restartitem_appmenu.setAttribute("shortcut", "Alt+R");
-	  restartitem_appmenu.setAttribute("insertbefore", "appMenu-quit-button2");
-	  restartitem_appmenu.setAttribute("onclick", "if (event.button == 0) {RestartMenuFileAppItems.restartApp(false);} else if (event.button == 1) {RestartMenuFileAppItems.restartApp(true)};");
-	  restartitem_appmenu.setAttribute("oncommand", "RestartMenuFileAppItems.restartApp(false);");  
-	  
-	  
-	  var AMObserver = new MutationObserver(function(mutations) {
-	    mutations.forEach(function(mutation) {
-			if(document.querySelector("#appMenu-restart-button") == null ) document.querySelector("#appMenu-quit-button2").parentNode.insertBefore(restartitem_appmenu,document.getElementById("appMenu-quit-button2"));
-	    });    
-	  });
+	if(use_appmenu) {
+		
+		try {
+			
+		  restartitem_appmenu = document.createXULElement("toolbarbutton");
+		  restartitem_appmenu.setAttribute("label", button_label);
+		  restartitem_appmenu.setAttribute("id","appMenu-restart-button");
+		  if(appmenuicon) restartitem_appmenu.setAttribute("class","subviewbutton subviewbutton-iconic");
+			else restartitem_appmenu.setAttribute("class","subviewbutton");
+		  restartitem_appmenu.setAttribute("accesskey", "R");
+		  restartitem_appmenu.setAttribute("shortcut", "Alt+R");
+		  restartitem_appmenu.setAttribute("insertbefore", "appMenu-quit-button2");
+		  restartitem_appmenu.setAttribute("onclick", "if (event.button == 0) {RestartMenuFileAppItems.restartApp(false);} else if (event.button == 1) {RestartMenuFileAppItems.restartApp(true)};");
+		  restartitem_appmenu.setAttribute("oncommand", "RestartMenuFileAppItems.restartApp(false);");
 
-	AMObserver.observe(document.querySelector("#PanelUI-menu-button"), { attributes: true, attributeFilter: ['open'] });
+		  
+		  var AMObserver = new MutationObserver(function(mutations) {
+			mutations.forEach(function(mutation) {
+				if(document.querySelector("#appMenu-restart-button") == null ) document.querySelector("#appMenu-quit-button2").parentNode.insertBefore(restartitem_appmenu,document.getElementById("appMenu-quit-button2"));
+			});    
+		  });
 
-	  
-	} catch(e) {}
+		AMObserver.observe(document.querySelector("#PanelUI-menu-button"), { attributes: true, attributeFilter: ['open'] });
+
+
+		} catch(e) {}
+		
+	}
 
 	var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"].getService(Components.interfaces.nsIStyleSheetService);
-	
+
 	var icon = "chrome://global/skin/icons/reload.svg";
   
 	if(appversion < 92) icon = "chrome://browser/skin/reload.svg";
-	
+
 	var menu_item_code = "";
-	
+
 	if(menuicon)
 	 menu_item_code ='	\
 	  #fileMenu-restart-item { \
@@ -85,18 +90,18 @@ var RestartMenuFileAppItems = {
 	  
 	var appmenu_item_code = "";
 	  
-	if(appmenuicon)
+	if(use_appmenu && appmenuicon)
 	 appmenu_item_code = '	\
-	  #appMenu-restart-button { \
+	  #appMenu-restart-button {\
 		list-style-image: url("'+icon+'"); /* Button in appMenu */ \
-	  } \
+	  }\
 	  #appMenu-restart-button .toolbarbutton-icon { /* Style the Button */ \
 		transform: scaleX(-1); /* Icon mirroring */ \
 		color: red; /* Icon color name */ \
 	  } \
 	  #main-window:-moz-lwtheme:-moz-lwtheme-brighttext #appMenu-restart-button .toolbarbutton-icon { \
 		color: unset; /* do not color the icon in dark mode */ \
-	  } \
+	  }\
 	 ';
 
 	// Style the icons (button/menu)
@@ -107,7 +112,7 @@ var RestartMenuFileAppItems = {
 	'), null, null);
 
 	sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
-	
+
   },
 
   restartApp: function(clearcaches) {
@@ -129,13 +134,4 @@ var RestartMenuFileAppItems = {
 
 }
 
-if (gBrowserInit.delayedStartupFinished) RestartMenuFileAppItems.init();
-else {
-  let delayedListener = (subject, topic) => {
-    if (topic == 'browser-delayed-startup-finished' && subject == window) {
-      Services.obs.removeObserver(delayedListener, topic);
-      RestartMenuFileAppItems.init();
-    }
-  };
-  Services.obs.addObserver(delayedListener, 'browser-delayed-startup-finished');
-}
+RestartMenuFileAppItems.init();
