@@ -11,7 +11,7 @@
 // [!] BUG: do not move spaces, flexible spaces or separator to configuration toolbar or it will cause glitches
 // [!] BUG: do not move main 'space'-item to palette or it will be hidden until customizing mode gets reopened
 
-// [!] Fix for WebExtensions with own windows by 黒仪大螃蟹 (for 1-N scripts)
+// [!] Fix for WebExtensions with own windows by ??? (for 1-N scripts)
 
 
 Components.utils.import("resource:///modules/CustomizableUI.jsm");
@@ -20,25 +20,28 @@ var appversion = parseInt(Services.appinfo.version);
 
 var AddSeparator = {
   init: function() {
-
-	if (appversion >= 76 && location != 'chrome://browser/content/browser.xhtml')
+  	
+  	if (location != 'chrome://browser/content/browser.xhtml')
       return;
 
-	/* blank tab workaround */
 	try {
-	  if(gBrowser.selectedBrowser.getAttribute('blank')) gBrowser.selectedBrowser.removeAttribute('blank');
-	} catch(e) {}
-	  
+		/* blank tab workaround */
+		if(gBrowser.selectedBrowser.getAttribute('blank')) {
+			gBrowser.selectedBrowser.removeAttribute('blank');
+		}
+	}
+	catch(e) {}
+
 	var tb_config_label = "Configuration Toolbar";
 	var tb_spacer_label = "Space";
 	var tb_sep_label = "Separator";
 	var tb_spring_label = "Flexible Space";
-	  
+
 	try {
-	 if(document.getElementById('configuration_toolbar') == null) {
-		
-	  if(appversion <= 62) var tb_config = document.createElement("toolbar");
-	  else var tb_config = document.createXULElement("toolbar");
+
+	if(document.getElementById('configuration_toolbar') == null) {
+
+	  var tb_config = document.createXULElement("toolbar");
 	  tb_config.setAttribute("id","configuration_toolbar");
 	  tb_config.setAttribute("customizable","true");
 	  tb_config.setAttribute("class","toolbar-primary chromeclass-toolbar browser-toolbar customization-target");
@@ -48,55 +51,51 @@ var AddSeparator = {
 	  tb_config.setAttribute("lockiconsize","true");
 	  tb_config.setAttribute("ordinal","1005");
 	  tb_config.setAttribute("defaultset","toolbarspacer,toolbarseparator");
-	  
+
 	  document.querySelector('#navigator-toolbox').appendChild(tb_config);
-	  
+
 	  CustomizableUI.registerArea("configuration_toolbar", {legacy: true});
-	  if(appversion >= 65) CustomizableUI.registerToolbarNode(tb_config);
-	  
-	  if(appversion <= 62) var tb_label = document.createElement("label");
-	  else var tb_label = document.createXULElement("label");
+	  CustomizableUI.registerToolbarNode(tb_config);
+
+	  var tb_label = document.createXULElement("label");
 	  tb_label.setAttribute("label", tb_config_label+": ");
 	  tb_label.setAttribute("value", tb_config_label+": ");
 	  tb_label.setAttribute("id","tb_config_tb_label");
 	  tb_label.setAttribute("removable","false");
-	  
+
 	  tb_config.appendChild(tb_label);
-	  
-	  
-	  if(appversion <= 62) var tb_spacer = document.createElement("toolbarspacer");
-	  else var tb_spacer = document.createXULElement("toolbarspacer");
+
+
+	  var tb_spacer = document.createXULElement("toolbarspacer");
 	  tb_spacer.setAttribute("id","spacer");
 	  tb_spacer.setAttribute("class","chromeclass-toolbar-additional");
 	  tb_spacer.setAttribute("customizableui-areatype","toolbar");
 	  tb_spacer.setAttribute("removable","false");
 	  tb_spacer.setAttribute("label", tb_spacer_label);
-	  
+
 	  tb_config.appendChild(tb_spacer);
-	
-	  
-	  if(appversion <= 62) var tb_sep = document.createElement("toolbarseparator");
-	  else var tb_sep = document.createXULElement("toolbarseparator");
+
+
+	  var tb_sep = document.createXULElement("toolbarseparator");
 	  tb_sep.setAttribute("id","separator");
 	  tb_sep.setAttribute("class","chromeclass-toolbar-additional");
 	  tb_sep.setAttribute("customizableui-areatype","toolbar");
 	  tb_sep.setAttribute("removable","false");
 	  tb_sep.setAttribute("label", tb_sep_label);
- 	  
+
 	  tb_config.appendChild(tb_sep);
-	  
-	 
-	  if(appversion <= 62) var tb_spring = document.createElement("toolbarspring");
-	  else var tb_spring = document.createXULElement("toolbarspring");
+
+
+	  var tb_spring = document.createXULElement("toolbarspring");
 	  tb_spring.setAttribute("id","spring");
 	  tb_spring.setAttribute("class","chromeclass-toolbar-additional");
 	  tb_spring.setAttribute("customizableui-areatype","toolbar");
 	  tb_spring.setAttribute("removable","false");
-	  tb_spring.setAttribute("flex","1"); 
+	  tb_spring.setAttribute("flex","1");
 	  tb_spring.setAttribute("label", tb_spring_label);
-	  	  
+
 	  tb_config.appendChild(tb_spring);
-	    
+
 	  // CSS
 	  var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"].getService(Components.interfaces.nsIStyleSheetService);
 
@@ -157,25 +156,24 @@ var AddSeparator = {
 		#customization-palette-container :-moz-any(#spring,#wrapper-spring) { \
 		  display: none !important; \
 		}\
-		#main-window:not([customizing]) toolbar:not(#configuration_toolbar) toolbarspring {\
-		  max-width: 100% !important; \
+		toolbarspring {\
+			min-width: 0px !important; \
+			max-width: 100% !important; \
+		}\
+		#nav-bar toolbartabstop {\
+			max-height: 28px !important; \
 		}\
 	  \
 	  '), null, null);
 
 	  sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
-	 }
+
+
+  }
 	} catch(e){}
 
   }
 
 }
 
-/* initialization delay workaround */
-document.addEventListener("DOMContentLoaded", AddSeparator.init(), false);
-/* Use the below code instead of the one above this line, if issues occur */
-/*
-setTimeout(function(){
-  AddSeparator.init();
-},2000);
-*/
+AddSeparator.init();
