@@ -1,5 +1,5 @@
 This is a fork to show my personal changes.<br>
-Some may rely on my CSS changes, so they are meant to get inspiration to do something differently, not to be used as is (though it may work, with luck).<br>
+Some may rely on my CSS changes, so they are meant to get inspiration to do something differently, **not to be used as is** (though it may work, with luck).<br>
 Below is the normal README.md from the ordinary project.
 
 ---
