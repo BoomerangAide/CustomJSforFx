@@ -6,7 +6,6 @@ var stopped_downloads_list = [];
 var successful_downloads_list = [];
 
 var default_popup;
-var download_button;
 
 var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", {});
 var {Downloads} = Components.utils.import("resource://gre/modules/Downloads.jsm", {});
@@ -18,7 +17,7 @@ var DownloadWindowObject = {
 		try {
 
 			var appversion = parseInt(Services.appinfo.version);
-			download_button = document.getElementById('downloads-button');
+			let download_button = document.getElementById('downloads-button');
 
 			if(download_button && download_button.visibility != "hidden" && download_button.display != "none") {
 
@@ -73,11 +72,15 @@ var DownloadWindowObject = {
 						stopped_downloads_list.push(download);
 					}
 					
-					download_button.setAttribute("tooltiptext",
+					try {
+						document.getElementById('downloads-button').setAttribute("tooltiptext",
 						"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
 						"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
 						"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
 						"Cancelled downloads: " + cancelled_downloads_list.length);				
+					}
+					catch(e) {}
+						
 				},
 				
 				onDownloadChanged: download => {
@@ -113,11 +116,14 @@ var DownloadWindowObject = {
 						stopped_downloads_list.push(download);
 					}
 					
-					download_button.setAttribute("tooltiptext",
+					try {
+						document.getElementById('downloads-button').setAttribute("tooltiptext",
 						"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
 						"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
 						"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
 						"Cancelled downloads: " + cancelled_downloads_list.length);						
+					}
+					catch(e) {}
 					
 				},
 				
@@ -146,14 +152,18 @@ var DownloadWindowObject = {
 						successful_downloads_list.length != 0
 					)
 					{
-					download_button.setAttribute("tooltiptext",
+						try {
+							document.getElementById('downloads-button').setAttribute("tooltiptext",
 						"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
 						"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
 						"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
 						"Cancelled downloads: " + cancelled_downloads_list.length);	
+						} catch(e) {}
 					}
 					else
-						download_button.setAttribute("tooltiptext", GetDynamicShortcutTooltipText('downloads-button'));
+						try {
+							document.getElementById('downloads-button').setAttribute("tooltiptext", GetDynamicShortcutTooltipText('downloads-button'));
+						} catch(e) {}
 					
 				}
 			};
@@ -234,6 +244,7 @@ var DownloadWindowObject = {
 			var downloads_list_global = await Downloads.getList(Downloads.ALL);
 			var downloads_list = await downloads_list_global.getAll();
 			var i;
+			let download_button = document.getElementById('downloads-button');
 			
 			if(appversion > 69) {
 				
@@ -270,6 +281,7 @@ var DownloadWindowObject = {
 			
 			var i;
 			var item_to_retry = null;
+			let download_button = document.getElementById('downloads-button');
 			
 			try {
 				
