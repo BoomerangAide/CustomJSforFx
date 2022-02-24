@@ -5,8 +5,6 @@ var cancelled_downloads_list = [];
 var stopped_downloads_list = [];
 var successful_downloads_list = [];
 
-var default_popup;
-
 var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", {});
 var {Downloads} = Components.utils.import("resource://gre/modules/Downloads.jsm", {});
 
@@ -41,7 +39,7 @@ var DownloadWindowObject = {
 						}
 						else
 						if(event.which == 2) {		//middle-click invoke Retry All
-							RetryAll();
+							RetryAllMidClick();
 						}
 					};
 
@@ -190,14 +188,10 @@ var DownloadWindowObject = {
 			div_container.setAttribute("style","max-height:480px;");
 			
 			var clear_button = document.createElement("button");
-			clear_button.ClearSuccessfulDownloads = ClearSuccessfulDownloads;
-			clear_button.setAttribute("onclick", "ClearSuccessfulDownloads()");
 			clear_button.setAttribute("align", "center");
 			clear_button.append("Clear successful downloads");
 			
 			var retry_all_button = document.createElement("button");
-			retry_all_button.RetryAll = RetryAll;
-			retry_all_button.setAttribute("onclick", "RetryAll()");
 			retry_all_button.setAttribute("align", "center");
 			retry_all_button.append("Retry All");
 			
@@ -236,48 +230,99 @@ var DownloadWindowObject = {
 				
 			};
 			
-		}
-		
-		/// Cannot clear downloads from history unless version 70+
-		async function ClearSuccessfulDownloads() {
-			
-			var downloads_list_global = await Downloads.getList(Downloads.ALL);
-			var downloads_list = await downloads_list_global.getAll();
-			var i;
-			let download_button = document.getElementById('downloads-button');
-			
-			if(appversion > 69) {
-				
-				Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
-				
-				var downloads_history_list_global = await DownloadHistory.getList(Downloads.ALL);
-				var downloads_history_list = await downloads_history_list_global.getAll();
+			clear_button.onclick = 
+				/// Cannot clear downloads from history unless version 70+
+				async function ClearSuccessfulDownloads() {
+					
+					var downloads_list_global = await Downloads.getList(Downloads.ALL);
+					var downloads_list = await downloads_list_global.getAll();
+					var i;
+					let download_button = document.getElementById('downloads-button');
+					
+					if(appversion > 69) {
+						
+						Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
+						
+						var downloads_history_list_global = await DownloadHistory.getList(Downloads.ALL);
+						var downloads_history_list = await downloads_history_list_global.getAll();
 
-				for(i = 0; i < downloads_history_list.length; i++) {
-					if(downloads_history_list[i].succeeded) {
-						try { await PlacesUtils.history.remove(downloads_history_list[i].source.url); } catch (e) {}
-						await downloads_history_list[i].finalize(true);		
+						for(i = 0; i < downloads_history_list.length; i++) {
+							if(downloads_history_list[i].succeeded) {
+								try { await PlacesUtils.history.remove(downloads_history_list[i].source.url); } catch (e) {}
+								await downloads_history_list[i].finalize(true);		
+							}
+						}
+						
 					}
-				}
+					
+					for(i = 0; i < downloads_list.length; i++) {
+						if(downloads_list[i].succeeded) {
+							try { await PlacesUtils.history.remove(downloads_history_list[i].source.url); } catch (e) {}
+							await downloads_list_global.remove(downloads_list[i]);
+							await downloads_list[i].finalize(true);
+						}
+					}
+					
+					if(download_button.hasAttribute('attention')) {
+						download_button.removeAttribute('attention');
+					}		
+					
+				};
 			
-			}
+			retry_all_button.onclick = 
+				/// Cannot retry downloads from history unless version 70+
+				async function RetryAll() {
+					
+					var i;
+					var item_to_retry = null;
+					let download_button = document.getElementById('downloads-button');
+					
+					try {
+						
+						var downloads_list_global = await Downloads.getList(Downloads.ALL);
+						var downloads_list = await downloads_list_global.getAll();
+						
+						for(i = 0; item_to_retry === null && i < downloads_list.length; i++) {
+							if(downloads_list[i].stopped && !downloads_list[i].succeeded && !downloads_list[i].canceled) {
+								item_to_retry = downloads_list[i];
+							}
+						}
+						
+						if(item_to_retry === null && appversion > 69) {
+							
+							Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
+							
+							var downloads_history_list_global = await DownloadHistory.getList(Downloads.ALL);
+							var downloads_history_list = await downloads_history_list_global.getAll();
 
-			for(i = 0; i < downloads_list.length; i++) {
-				if(downloads_list[i].succeeded) {
-					try { await PlacesUtils.history.remove(downloads_history_list[i].source.url); } catch (e) {}
-					await downloads_list_global.remove(downloads_list[i]);
-					await downloads_list[i].finalize(true);
-				}
-			}
-
-			if(download_button.hasAttribute('attention')) {
-				download_button.removeAttribute('attention');
-			}			
+							for(i = 0; item_to_retry === null && i < downloads_history_list.length; i++) {
+								if(downloads_history_list[i].stopped && !downloads_history_list[i].succeeded && !downloads_history_list[i].canceled) {	
+									item_to_retry = downloads_history_list[i];						
+								}
+							}
+						
+						}
+						
+						if(item_to_retry !== null) {
+							try { await item_to_retry.start(); } catch(e) {}
+							setTimeout(retry_all_button.onclick,1000);
+						}
+						else
+						if(download_button.hasAttribute('attention')) {
+							download_button.removeAttribute('attention');
+						}
+						
+					}
+					catch(e) {
+						setTimeout(retry_all_button.onclick,1000);
+					}
+					
+				};
 			
 		}
-		
+
 		/// Cannot retry downloads from history unless version 70+
-		async function RetryAll() {
+		async function RetryAllMidClick() {
 			
 			var i;
 			var item_to_retry = null;
@@ -311,7 +356,7 @@ var DownloadWindowObject = {
 				
 				if(item_to_retry !== null) {
 					try { await item_to_retry.start(); } catch(e) {}
-					setTimeout(RetryAll,1000);
+					setTimeout(RetryAllMidClick,1000);
 				}
 				else
 				if(download_button.hasAttribute('attention')) {
@@ -320,11 +365,10 @@ var DownloadWindowObject = {
 				
 			}
 			catch(e) {
-				setTimeout(RetryAll,1000);
+				setTimeout(RetryAllMidClick,1000);
 			}
 			
-		}
-
+		};
 	}
 	
 }
