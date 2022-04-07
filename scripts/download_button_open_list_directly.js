@@ -8,6 +8,12 @@ var successful_downloads_list = [];
 var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", {});
 var {Downloads} = Components.utils.import("resource://gre/modules/Downloads.jsm", {});
 
+const dl_text_error_color = "red";
+const dl_text_warning_color = "orange";
+const dl_text_ongoing_color = "#CCCC00";
+const dl_text_partial_completion_color = "lightgreen";
+const dl_text_all_completed_color = "green";
+
 var DownloadWindowObject = {
 	
 	init: async function() {
@@ -71,11 +77,50 @@ var DownloadWindowObject = {
 					}
 					
 					try {
-						document.getElementById('downloads-button').setAttribute("tooltiptext",
-						"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
-						"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
-						"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
-						"Cancelled downloads: " + cancelled_downloads_list.length);				
+						
+						let dl_button = document.getElementById('downloads-button');
+						
+						dl_button.setAttribute("tooltiptext",
+							"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
+							"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+							"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
+							"Cancelled downloads: " + cancelled_downloads_list.length + '\r\n' +
+							"Progress: " + dl_button.style.getPropertyValue("--download-progress-pcent")
+						);
+						
+						if(stopped_downloads_list.length != 0) {
+							dl_button.style.setProperty("color", dl_text_error_color, "important");
+							dl_button.style.setProperty("font-weight", "bold", "important");
+						}
+						else
+						if(cancelled_downloads_list.length != 0) {
+							dl_button.style.setProperty("color", dl_text_warning_color, "important");
+						}
+						else
+						if(ongoing_downloads_list.length != 0) {
+							if(successful_downloads_list.length != 0) {
+								dl_button.style.setProperty("color", dl_text_partial_completion_color, "important");
+								dl_button.style.removeProperty("font-weight");
+							}
+							else {
+								dl_button.style.setProperty("color", dl_text_ongoing_color, "important");
+								dl_button.style.removeProperty("font-weight");
+							}
+						}
+						else
+						if(successful_downloads_list.length != 0) {
+							dl_button.style.setProperty("color", dl_text_all_completed_color, "important");
+							dl_button.style.setProperty("font-weight", "bold", "important");
+							dl_button.setAttribute("tooltiptext",
+								"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+								"Progress: 100%"
+							);	
+						}
+						else {
+							dl_button.style.removeProperty("color");
+							dl_button.style.removeProperty("font-weight");
+						}
+						
 					}
 					catch(e) {}
 						
@@ -115,11 +160,50 @@ var DownloadWindowObject = {
 					}
 					
 					try {
-						document.getElementById('downloads-button').setAttribute("tooltiptext",
-						"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
-						"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
-						"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
-						"Cancelled downloads: " + cancelled_downloads_list.length);						
+						
+						let dl_button = document.getElementById('downloads-button');
+						
+						dl_button.setAttribute("tooltiptext",
+							"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
+							"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+							"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
+							"Cancelled downloads: " + cancelled_downloads_list.length + '\r\n' +
+							"Progress: " + dl_button.style.getPropertyValue("--download-progress-pcent")
+						);	
+						
+						if(stopped_downloads_list.length != 0) {
+							dl_button.style.setProperty("color", dl_text_error_color, "important");
+							dl_button.style.setProperty("font-weight", "bold", "important");
+						}
+						else
+						if(cancelled_downloads_list.length != 0) {
+							dl_button.style.setProperty("color", dl_text_warning_color, "important");
+						}
+						else
+						if(ongoing_downloads_list.length != 0) {
+							if(successful_downloads_list.length != 0) {
+								dl_button.style.setProperty("color", dl_text_partial_completion_color, "important");
+								dl_button.style.removeProperty("font-weight");
+							}
+							else {
+								dl_button.style.setProperty("color", dl_text_ongoing_color, "important");
+								dl_button.style.removeProperty("font-weight");
+							}
+						}
+						else
+						if(successful_downloads_list.length != 0) {
+							dl_button.style.setProperty("color", dl_text_all_completed_color, "important");
+							dl_button.style.setProperty("font-weight", "bold", "important");
+							dl_button.setAttribute("tooltiptext",
+								"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+								"Progress: 100%"
+							);	
+						}
+						else {
+							dl_button.style.removeProperty("color");
+							dl_button.style.removeProperty("font-weight");
+						}
+						
 					}
 					catch(e) {}
 					
@@ -151,16 +235,54 @@ var DownloadWindowObject = {
 					)
 					{
 						try {
-							document.getElementById('downloads-button').setAttribute("tooltiptext",
-						"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
-						"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
-						"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
-						"Cancelled downloads: " + cancelled_downloads_list.length);	
+							
+							let dl_button = document.getElementById('downloads-button');
+							
+							dl_button.setAttribute("tooltiptext",
+								"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
+								"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+								"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
+								"Cancelled downloads: " + cancelled_downloads_list.length + '\r\n' +
+								"Progress: " + dl_button.style.getPropertyValue("--download-progress-pcent")
+							);
+							
+							if(stopped_downloads_list.length != 0) {
+								dl_button.style.setProperty("color", dl_text_error_color, "important");
+								dl_button.style.setProperty("font-weight", "bold", "important");
+							}
+							else
+							if(cancelled_downloads_list.length != 0) {
+								dl_button.style.setProperty("color", dl_text_warning_color, "important");
+							}
+							else
+							if(ongoing_downloads_list.length != 0) {
+								if(successful_downloads_list.length != 0) {
+									dl_button.style.setProperty("color", dl_text_partial_completion_color, "important");
+									dl_button.style.removeProperty("font-weight");
+								}
+								else {
+									dl_button.style.setProperty("color", dl_text_ongoing_color, "important");
+									dl_button.style.removeProperty("font-weight");
+								}
+							}
+							else
+							if(successful_downloads_list.length != 0) {
+								dl_button.style.setProperty("color", dl_text_all_completed_color, "important");
+								dl_button.style.setProperty("font-weight", "bold", "important");
+								dl_button.setAttribute("tooltiptext",
+									"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+									"Progress: 100%"
+								);	
+							}
+							
 						} catch(e) {}
 					}
 					else
 						try {
-							document.getElementById('downloads-button').setAttribute("tooltiptext", GetDynamicShortcutTooltipText('downloads-button'));
+							let dl_button = document.getElementById('downloads-button');
+							dl_button.setAttribute("tooltiptext", GetDynamicShortcutTooltipText('downloads-button'));
+							dl_button.style.removeProperty("color");
+							dl_button.style.removeProperty("font-weight");
 						} catch(e) {}
 					
 				}
@@ -252,23 +374,19 @@ var DownloadWindowObject = {
 								await downloads_history_list[i].finalize(true);		
 							}
 						}
-						
-					}
 					
+					}
+
 					for(i = 0; i < downloads_list.length; i++) {
 						if(downloads_list[i].succeeded) {
 							try { await PlacesUtils.history.remove(downloads_history_list[i].source.url); } catch (e) {}
 							await downloads_list_global.remove(downloads_list[i]);
 							await downloads_list[i].finalize(true);
 						}
-					}
-					
-					if(download_button.hasAttribute('attention')) {
-						download_button.removeAttribute('attention');
 					}		
-					
-				};
 			
+				};
+		
 			retry_all_button.onclick = 
 				/// Cannot retry downloads from history unless version 70+
 				async function RetryAll() {
@@ -306,10 +424,6 @@ var DownloadWindowObject = {
 						if(item_to_retry !== null) {
 							try { await item_to_retry.start(); } catch(e) {}
 							setTimeout(retry_all_button.onclick,1000);
-						}
-						else
-						if(download_button.hasAttribute('attention')) {
-							download_button.removeAttribute('attention');
 						}
 						
 					}
@@ -357,10 +471,6 @@ var DownloadWindowObject = {
 				if(item_to_retry !== null) {
 					try { await item_to_retry.start(); } catch(e) {}
 					setTimeout(RetryAllMidClick,1000);
-				}
-				else
-				if(download_button.hasAttribute('attention')) {
-					download_button.removeAttribute('attention');
 				}
 				
 			}
