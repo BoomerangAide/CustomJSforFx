@@ -27,10 +27,11 @@ var CustomCSSforFx_icon_filename = 'padlock_classic.png'; //change to the filena
 		tooltiptext: "Mots de passe", // tooltip title
 	onClick: function(event) {
   
-	  // open about:logins in a new tab and add current domain to it (excl. about pages)
+	  // open about:logins in a new tab
 	  function open_aboutlogins_in_tab() {
 		try {
-		  LoginHelper.openPasswordManager(window, { filterString: gBrowser.currentURI.host, entryPoint: 'mainmenu' });
+			window.open('about:logins');
+		  //LoginHelper.openPasswordManager(window, { filterString: gBrowser.currentURI.host, entryPoint: 'mainmenu' });
 		} catch (e) {
 		  LoginHelper.openPasswordManager(window, { entryPoint: 'mainmenu' });
 		}
