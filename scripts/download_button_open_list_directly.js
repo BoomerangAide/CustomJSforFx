@@ -51,7 +51,7 @@ var DownloadWindowObject = {
 
 			}
 			
-			//Code below allow to monitof the session downloads on the download button popup
+			//Code below allow to monitor the session downloads on the download button popup
 			//This won't monitor downloads from history since there's a possibility of duplicates
 			//causing wrong values to be displayed
 			
@@ -119,6 +119,7 @@ var DownloadWindowObject = {
 						else {
 							dl_button.style.removeProperty("color");
 							dl_button.style.removeProperty("font-weight");
+							dl_button.removeAttribute("open");
 						}
 						
 					}
@@ -202,6 +203,7 @@ var DownloadWindowObject = {
 						else {
 							dl_button.style.removeProperty("color");
 							dl_button.style.removeProperty("font-weight");
+							dl_button.removeAttribute("open");
 						}
 						
 					}
@@ -283,6 +285,7 @@ var DownloadWindowObject = {
 							dl_button.setAttribute("tooltiptext", GetDynamicShortcutTooltipText('downloads-button'));
 							dl_button.style.removeProperty("color");
 							dl_button.style.removeProperty("font-weight");
+							dl_button.removeAttribute("open");
 						} catch(e) {}
 					
 				}
@@ -360,21 +363,17 @@ var DownloadWindowObject = {
 					var downloads_list = await downloads_list_global.getAll();
 					var i;
 					let download_button = document.getElementById('downloads-button');
+						
+					Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
 					
-					if(appversion > 69) {
-						
-						Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
-						
-						var downloads_history_list_global = await DownloadHistory.getList(Downloads.ALL);
-						var downloads_history_list = await downloads_history_list_global.getAll();
+					var downloads_history_list_global = await DownloadHistory.getList(Downloads.ALL);
+					var downloads_history_list = await downloads_history_list_global.getAll();
 
-						for(i = 0; i < downloads_history_list.length; i++) {
-							if(downloads_history_list[i].succeeded) {
-								try { await PlacesUtils.history.remove(downloads_history_list[i].source.url); } catch (e) {}
-								await downloads_history_list[i].finalize(true);		
-							}
+					for(i = 0; i < downloads_history_list.length; i++) {
+						if(downloads_history_list[i].succeeded) {
+							try { await PlacesUtils.history.remove(downloads_history_list[i].source.url); } catch (e) {}
+							await downloads_history_list[i].finalize(true);		
 						}
-					
 					}
 
 					for(i = 0; i < downloads_list.length; i++) {
@@ -406,7 +405,7 @@ var DownloadWindowObject = {
 							}
 						}
 						
-						if(item_to_retry === null && appversion > 69) {
+						if(item_to_retry === null) {
 							
 							Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
 							
@@ -453,7 +452,7 @@ var DownloadWindowObject = {
 					}
 				}
 				
-				if(item_to_retry === null && appversion > 69) {
+				if(item_to_retry === null) {
 					
 					Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
 					
