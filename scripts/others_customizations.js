@@ -3,7 +3,7 @@ var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", 
 var OthersCustomizations = {
 	init: async function() {
 		
-		await Services.search.wrappedJSObject._initObservers.promise;
+		await Services.search.wrappedJSObject.init();
 
 		///
 		/// Move Back and Forward button to personal toolbar
@@ -47,30 +47,45 @@ var OthersCustomizations = {
 		///
 		
 		function NoscriptButtonMutationObserver(mutations,local_observer) {
+			
 		  local_observer.disconnect();
-		  mutations.forEach(
-			mutation => { 
-				if(mutation.target.getAttribute('label') != "NoScript") {
-					mutation.target.setAttribute('label', "NoScript");
-				}
-			}
-		  );
-		  noscript_buttons.forEach(noscript_button => local_observer.observe(noscript_button, { attributes : true, attributeFilter : [ "label" ] }));
+		  
+		  if(mutations.length > 0) {
+				if(mutations[0].target.getAttribute('label') != "NoScript") {
+					mutations[0].target.setAttribute('label', "NoScript");
+				}			  
+		  }
+		  
+		  local_observer.observe(mutations[0].target, { attributes : true, attributeFilter : [ "label" ] });
+		  
 		}
 		
 		try {
-		  var noscript_buttons = document.getElementsByTagName('toolbarbutton');
-		  setTimeout( function() {
-			  
-			noscript_buttons = Array.from(noscript_buttons).filter(elem => elem.getAttribute('label').includes('NoScript'));
-		    let mutationObserver = new MutationObserver(NoscriptButtonMutationObserver);
-			
-			noscript_buttons.forEach(noscript_button => { if(noscript_button.getAttribute('label') != "NoScript") { noscript_button.setAttribute('label', "NoScript"); }});
-			noscript_buttons.forEach(noscript_button => mutationObserver.observe(noscript_button, { attributes : true, attributeFilter : [ "label" ] }));
-			
-		  },1000);		
+			initiateNoScriptButtonSearchAndProcessing(0);	
 		}
 		catch(e) { console.log(e);}
+		
+		function initiateNoScriptButtonSearchAndProcessing(attemptsCount = 0) {
+			
+			let noscript_button = Array.from(document.getElementsByTagName('toolbarbutton')).find(elem => elem.getAttribute('label').includes('NoScript'));
+			
+			if(noscript_button == undefined) {
+				if(attemptsCount < 20) {
+					setTimeout(initiateNoScriptButtonSearchAndProcessing, 1000, attemptsCount+1);
+				}
+			}
+			else {
+				
+				let mutationObserver = new MutationObserver(NoscriptButtonMutationObserver);
+				
+				if(noscript_button.getAttribute('label') != "NoScript") {
+					noscript_button.setAttribute('label', "NoScript"); 
+				}
+				
+				mutationObserver.observe(noscript_button, { attributes : true, attributeFilter : [ "label" ] });
+				
+			}
+		}
 		
 		///
 		/// Update login popup height (mainly for NationStates to prevent scrollbars
@@ -119,6 +134,41 @@ var OthersCustomizations = {
 		try {
 			const popup_autocomplete_observer = new MutationObserver(PopupAutocompleteObservation);
 			popup_autocomplete_observer.observe(document.getElementById("PopupAutoComplete"), { childList: true, subtree: true, attributes: true, attributeFilter : [ "collapsed" ] });
+		}
+		catch(e) {}
+		
+		///
+		/// Change scale of login when zoomed
+		///
+		
+		function ZoomObservation(mutations, this_observer) {
+			
+			const zoom_button = document.getElementById("PopupAutoComplete");
+			let login_entries = document.querySelectorAll(".autocomplete-richlistitem[originaltype='loginWithOrigin']");
+			let login_entries_images = document.querySelectorAll(".autocomplete-richlistitem[originaltype='loginWithOrigin'] > div > .ac-site-icon");
+			let zoom_value = ZoomManager.getZoomForBrowser(gBrowser.selectedBrowser) * 100;
+			
+			if(zoom_button.getAttribute("hidden") == "true" || zoom_value <= 100) {
+				
+				for (let i = 0; i < login_entries.length; i++) {
+					login_entries[i].style.setProperty("font-size", "100%");
+					login_entries_images[i].style.removeProperty("align-self");
+				}
+				
+			}
+			else {
+				
+				for (let i = 0; i < login_entries.length; i++) {
+					login_entries[i].style.setProperty("font-size", zoom_value + "%");
+					login_entries_images[i].style.setProperty("align-self", "center");
+				}			
+			}
+			
+		}
+		
+		try {
+			const zoom_observer = new MutationObserver(ZoomObservation);
+			zoom_observer.observe(document.getElementById("urlbar-zoom-button"), { attributes: true, attributeFilter : [ "label", "hidden" ] });
 		}
 		catch(e) {}
 
