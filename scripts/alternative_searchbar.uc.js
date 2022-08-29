@@ -55,7 +55,7 @@ var isInCustomize = 1; //start at 1 to set it once at startup
 var AltSearchbar = {
  init: async function() {
 
-   await Services.search.wrappedJSObject._initObservers.promise;
+   await Services.search.wrappedJSObject.init();
 
    if (location != 'chrome://browser/content/browser.xhtml')
     return;
@@ -101,23 +101,6 @@ var AltSearchbar = {
                 searchoneoffs._contextEngine = event.target.engine;
                 searchoneoffs._on_command(event);
                 searchoneoffs._contextEngine = null;
-                // let contextEngine = event.target.engine;
-                // let currentEngine = searchbar.currentEngine;
-                // if (!searchoneoffs.getAttribute("includecurrentengine")) {
-                // 	// Make the target button of the context menu reflect the current
-                // 	// search engine first. Doing this as opposed to rebuilding all the
-                // 	// one-off buttons avoids flicker.
-                // 	let button = searchoneoffs._buttonForEngine(contextEngine);
-                // 	button.id = searchoneoffs._buttonIDForEngine(currentEngine);
-                // 	let uri = "chrome://browser/skin/search-engine-placeholder.png";
-                // 	if (currentEngine.iconURI) {
-                // 		uri = currentEngine.iconURI.spec;
-                // 	}
-                // 	button.setAttribute("image", uri);
-                // 	button.setAttribute("tooltiptext", currentEngine.name);
-                // 	button.engine = currentEngine;
-                // }
-                // searchbar.currentEngine = contextEngine;
             }
         }, true);
     };
@@ -311,10 +294,14 @@ var AltSearchbar = {
 				searchbuttonpopup.removeChild(searchbuttonpopup.lastChild);
 			}
 			
-			setTimeout(function () { //setTimeout fix an issue where labels don't get displayed
+			while (searchbuttonpopup.lastChild.tagName.toLowerCase() == "menuseparator") {
+				searchbuttonpopup.removeChild(searchbuttonpopup.lastChild);
+			}
+			
+			function AddEngineButtonsUpdate(retries = 0) {
 				
 				let native_popup_search_add_items_collection = document.getElementsByClassName("searchbar-engine-one-off-add-engine");
-				var native_popup_search_add_items = new Array();
+				let native_popup_search_add_items = new Array();
 				
 				for(i = 0; i < native_popup_search_add_items_collection.length; i++) {
 					if(!native_popup_search_add_items_collection[i].parentElement.parentElement.parentElement.parentElement.hasAttribute("class")) {
@@ -322,7 +309,21 @@ var AltSearchbar = {
 					}
 				}
 				
-				if (native_popup_search_add_items.length != 0) {
+				let test_first_element_label;
+
+				if(native_popup_search_add_items.length == 0) {
+					test_first_element_label = null;
+				}
+				else {
+					test_first_element_label = native_popup_search_add_items[0].getAttribute("label");
+				}
+				
+				if(!test_first_element_label || test_first_element_label.length == 0) {
+					if(retries < 20) {
+						setTimeout(AddEngineButtonsUpdate, 100, retries+1);
+					}
+				}
+				else {
 
 					if (searchbuttonpopup.lastChild.tagName.toLowerCase() != "menuseparator") {
 						searchbuttonpopup.appendChild(document.createXULElement("menuseparator"));
@@ -339,20 +340,19 @@ var AltSearchbar = {
 						menuitem.setAttribute("data-id", native_popup_search_add_items[i].id);
 						menuitem.setAttribute("oncommand", "document.getElementById(\"" + native_popup_search_add_items[i].id + "\").click();");
 
-						if (native_popup_search_add_items[i].hasAttribute("image"))
+						if (native_popup_search_add_items[i].hasAttribute("image")) {
 							menuitem.setAttribute("image", native_popup_search_add_items[i].getAttribute("image"));
+						}
 
 						searchbuttonpopup.appendChild(menuitem);
 
 					};
 
-				} 
-				else {
-					while (searchbuttonpopup.lastChild.tagName.toLowerCase() == "menuseparator")
-						searchbuttonpopup.removeChild(searchbuttonpopup.lastChild);
-				}		
+				}
+				
+			}
 			
-			}, 0 );
+			AddEngineButtonsUpdate(0);
 	  
 		}
 		catch (exc) {
@@ -586,6 +586,15 @@ var AltSearchbar = {
 		} \
 		\
 		';
+		
+	  let image;
+	  
+	  try {
+		  image = 'url(' + document.getElementById("searchbar").currentEngine.iconURI.spec + ')';
+	  }
+	  catch(exc) {
+		  image = 'none';
+	  }
 
 	  var uri = Services.io.newURI("data:text/css;charset=utf-8," + encodeURIComponent(' \
 		\
@@ -594,7 +603,7 @@ var AltSearchbar = {
 		 margin-inline-start: -1px; \
 		} \
 		.searchbar-search-button .searchbar-search-icon { \
-		  list-style-image: url('+document.getElementById("searchbar").currentEngine.iconURI.spec+') !important; \
+		  list-style-image: '+image+' !important; \
 		} \
 		.search-go-button { \
 		  list-style-image: url("chrome://global/skin/icons/search-glass.svg") !important; \
