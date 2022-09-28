@@ -69,7 +69,7 @@ var RestartMenuFileAppItems = {
 					});
 				});
 
-			AMObserver.observe(document.querySelector("#PanelUI-menu-button"), { attributes: true, attributeFilter: ['open'] });
+				AMObserver.observe(document.querySelector("#PanelUI-menu-button"), { attributes: true, attributeFilter: ['open'] });
 
 			}catch(e) {}
 
