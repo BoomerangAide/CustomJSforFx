@@ -1,4 +1,4 @@
-// 'Favicon in urlbars identity box' script for Firefox 89+ by Aris
+// 'Favicon in urlbars identity box' script for Firefox 102+, by Aris then modified by UndeadStar
 //
 // This script restores current pages favicon inside urlbar (aka location bar, address bar or awesome bar).
 // [!] If a page does not offer a favicon, browser branches default icon is shown.
@@ -23,105 +23,105 @@ var id_box = document.getElementById('identity-box');
 var id_icon = document.getElementById('identity-icon');
 
 var FaviconInUrlbar = {
- init: function() {
-   try {
-		
-	var favimginurlbar = document.createXULElement("image");
-	favimginurlbar.setAttribute("id","favimginurlbar");
-	  
-	if(favicon_click_opens_page_info_window)
-	  favimginurlbar.setAttribute("onclick","gIdentityHandler.handleMoreInfoClick(event);");	  
-	  
-	favimginurlbar.style.width = "16px";
-	favimginurlbar.style.height = "16px";
-	favimginurlbar.style.marginLeft = "3px";
-	favimginurlbar.style.marginRight = "3px";
-	favimginurlbar.style.marginTop = "3px";
-	favimginurlbar.style.marginBottom = "3px";
-	id_box.appendChild(favimginurlbar);
+init: function() {
+	try {
 
-	if(window.getComputedStyle(id_icon).getPropertyValue('list-style-image').includes('search-glass.svg'))
-	  id_icon.style.visibility = "collapse";
-	else
-	  id_icon.style.visibility = "visible";
+		var favimginurlbar = document.createXULElement("image");
+		favimginurlbar.setAttribute("id","favimginurlbar");
 
-	// update script every time tab attributes get modified (switch/open tabs/windows)
-	document.addEventListener("TabAttrModified", updateIcon, false);
-	document.addEventListener('TabSelect', updateIcon, false);
-	document.addEventListener('TabOpen', updateIcon, false);
-	document.addEventListener('TabClose', updateIcon, false);
-	document.addEventListener('load', updateIcon, false);
-	document.addEventListener("DOMContentLoaded", updateIcon, false);
+		if(favicon_click_opens_page_info_window)
+			favimginurlbar.setAttribute("onclick","gIdentityHandler.handleMoreInfoClick(event);");
 
-	function updateIcon() {
+		favimginurlbar.style.width = "16px";
+		favimginurlbar.style.height = "16px";
+		favimginurlbar.style.marginLeft = "3px";
+		favimginurlbar.style.marginRight = "3px";
+		favimginurlbar.style.marginTop = "3px";
+		favimginurlbar.style.marginBottom = "3px";
+		id_box.appendChild(favimginurlbar);
 
-	 setTimeout(function(){ // timeout fixes wrong icon detection in some cases
-	 
-	  if(gBrowser.selectedTab.image == i_icon)
-		  gBrowser.selectedTab.image = warning;
-
-	  // get current tabs favicon
-	  var favicon_in_urlbar = gBrowser.selectedTab.image;
-
-	  // if current tab offers no icon, use selected icon (icon_for_pages_without_favicon)
-	  
-	  if(!gBrowser.selectedTab.image || gBrowser.selectedTab.image == null) {
-		if(!icon_for_pages_without_favicon)
-			favicon_in_urlbar = brand;
+		if(window.getComputedStyle(id_icon).getPropertyValue('list-style-image').includes('search-glass.svg'))
+			id_icon.style.visibility = "collapse";
 		else
-			favicon_in_urlbar = icon_for_pages_without_favicon;
-	  }
-		  
-	  document.querySelector('#favimginurlbar').style.listStyleImage = "url('"+favicon_in_urlbar+"')";
+			id_icon.style.visibility = "visible";
 
-	if(window.getComputedStyle(id_icon).getPropertyValue('list-style-image').includes('search-glass.svg')/* || window.getComputedStyle(id_icon).getPropertyValue('list-style-image').includes('info.svg)')*/)
-		id_icon.style.visibility = "collapse";
-	else
-		id_icon.style.visibility = "visible";
+		// update script every time tab attributes get modified (switch/open tabs/windows)
+		document.addEventListener("TabAttrModified", updateIcon, false);
+		document.addEventListener('TabSelect', updateIcon, false);
+		document.addEventListener('TabOpen', updateIcon, false);
+		document.addEventListener('TabClose', updateIcon, false);
+		document.addEventListener('load', updateIcon, false);
+		document.addEventListener("DOMContentLoaded", updateIcon, false);
 
-	 },100);
+		function updateIcon() {
 
-	}
+			setTimeout(function() { // timeout fixes wrong icon detection in some cases
 
-	/* restore icon badge for websites with granted permissions */
-	var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"].getService(Components.interfaces.nsIStyleSheetService);
-	var uri = Services.io.newURI("data:text/css;charset=utf-8," + encodeURIComponent(' \
-		\
-		.grantedPermissions::after { \
-		  content: "" !important; \
-		  display: block !important; \
-		  width: 6px !important; \
-		  height: 6px !important; \
-		  position: absolute !important; \
-		  margin-inline-start: 14px !important; \
-		  margin-top: 2px !important; \
-		  background: Highlight !important; \
-		  border-radius: 100px !important; \
-		} \
-		#identity-permission-box::after { \
-		  content: "" !important; \
-		  display: block !important; \
-		  width: 6px !important; \
-		  height: 6px !important; \
-		  position: absolute !important; \
-		  margin-inline-start: 34px !important; \
-		  margin-top: -10px !important; \
-		  background: Highlight !important; \
-		  border-radius: 100px !important; \
-		} \
-		\
-	'), null, null);
+			if(gBrowser.selectedTab.image == i_icon)
+				gBrowser.selectedTab.image = warning;
 
-	// remove old style sheet
-	if (sss.sheetRegistered(uri,sss.AGENT_SHEET)) sss.unregisterSheet(uri,sss.AGENT_SHEET);
+			// get current tabs favicon
+			var favicon_in_urlbar = gBrowser.selectedTab.image;
 
-	sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
+			// if current tab offers no icon, use selected icon (icon_for_pages_without_favicon)
 
-	//execute once at start
-	updateIcon();
+			if(!gBrowser.selectedTab.image || gBrowser.selectedTab.image == null) {
+				if(!icon_for_pages_without_favicon)
+					favicon_in_urlbar = brand;
+				else
+					favicon_in_urlbar = icon_for_pages_without_favicon;
+			}
 
-  } catch(e) {}
- }
+			document.querySelector('#favimginurlbar').style.listStyleImage = "url('"+favicon_in_urlbar+"')";
+
+			if(window.getComputedStyle(id_icon).getPropertyValue('list-style-image').includes('search-glass.svg')/* || window.getComputedStyle(id_icon).getPropertyValue('list-style-image').includes('info.svg)')*/)
+				id_icon.style.visibility = "collapse";
+			else
+				id_icon.style.visibility = "visible";
+
+			},100);
+
+		}
+
+		/* restore icon badge for websites with granted permissions */
+		var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"].getService(Components.interfaces.nsIStyleSheetService);
+		var uri = Services.io.newURI("data:text/css;charset=utf-8," + encodeURIComponent(' \
+			\
+			.grantedPermissions::after { \
+			  content: "" !important; \
+			  display: block !important; \
+			  width: 6px !important; \
+			  height: 6px !important; \
+			  position: absolute !important; \
+			  margin-inline-start: 14px !important; \
+			  margin-top: 2px !important; \
+			  background: Highlight !important; \
+			  border-radius: 100px !important; \
+			} \
+			#identity-permission-box::after { \
+			  content: "" !important; \
+			  display: block !important; \
+			  width: 6px !important; \
+			  height: 6px !important; \
+			  position: absolute !important; \
+			  margin-inline-start: 34px !important; \
+			  margin-top: -10px !important; \
+			  background: Highlight !important; \
+			  border-radius: 100px !important; \
+			} \
+			\
+		'), null, null);
+
+		// remove old style sheet
+		if (sss.sheetRegistered(uri,sss.AGENT_SHEET)) sss.unregisterSheet(uri,sss.AGENT_SHEET);
+
+		sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
+
+		//execute once at start
+		updateIcon();
+
+	} catch(e) {}
+}
 };
 
 FaviconInUrlbar.init();
