@@ -1,3 +1,5 @@
+//Tested for Firefox 102.3.0 ESR
+
 var DownloadWindow = null;
 
 var ongoing_downloads_list = [];
@@ -15,9 +17,9 @@ const dl_text_partial_completion_color = "lightgreen";
 const dl_text_all_completed_color = "green";
 
 var DownloadWindowObject = {
-	
+
 	init: async function() {
-	
+
 		try {
 
 			var appversion = parseInt(Services.appinfo.version);
@@ -50,17 +52,17 @@ var DownloadWindowObject = {
 					};
 
 			}
-			
+
 			//Code below allow to monitor the session downloads on the download button popup
 			//This won't monitor downloads from history since there's a possibility of duplicates
 			//causing wrong values to be displayed
-			
+
 			let dl_list = await Downloads.getList(Downloads.ALL);
-			
+
 			let dl_view_events = {
-				
+
 				onDownloadAdded: download => {
-					
+
 					if(!download.stopped) {
 						ongoing_downloads_list.push(download);
 					}
@@ -75,19 +77,19 @@ var DownloadWindowObject = {
 					else {
 						stopped_downloads_list.push(download);
 					}
-					
+
 					try {
-						
+
 						let dl_button = document.getElementById('downloads-button');
-						
+
 						dl_button.setAttribute("tooltiptext",
-							"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
-							"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
-							"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
+						"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
+						"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +
+						"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
 							"Cancelled downloads: " + cancelled_downloads_list.length + '\r\n' +
 							"Progress: " + dl_button.style.getPropertyValue("--download-progress-pcent")
 						);
-						
+
 						if(stopped_downloads_list.length != 0) {
 							dl_button.style.setProperty("color", dl_text_error_color, "important");
 							dl_button.style.setProperty("font-weight", "bold", "important");
@@ -112,7 +114,7 @@ var DownloadWindowObject = {
 							dl_button.style.setProperty("color", dl_text_all_completed_color, "important");
 							dl_button.style.setProperty("font-weight", "bold", "important");
 							dl_button.setAttribute("tooltiptext",
-								"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+								"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +
 								"Progress: 100%"
 							);	
 						}
@@ -121,14 +123,14 @@ var DownloadWindowObject = {
 							dl_button.style.removeProperty("font-weight");
 							dl_button.removeAttribute("open");
 						}
-						
+
 					}
 					catch(e) {}
-						
+
 				},
-				
+
 				onDownloadChanged: download => {
-					
+
 					let index = ongoing_downloads_list.indexOf(download);
 					if(index != -1)
 						ongoing_downloads_list.splice(index,1);
@@ -136,15 +138,15 @@ var DownloadWindowObject = {
 					index = cancelled_downloads_list.indexOf(download);
 					if(index != -1)
 						cancelled_downloads_list.splice(index,1);
-										
+
 					index = stopped_downloads_list.indexOf(download);
 					if(index != -1)
 						stopped_downloads_list.splice(index,1);
-										
+
 					index = successful_downloads_list.indexOf(download);
 					if(index != -1)
 						successful_downloads_list.splice(index,1);
-					
+
 					if(download.succeeded) {
 						successful_downloads_list.push(download);
 					}
@@ -159,19 +161,19 @@ var DownloadWindowObject = {
 					else {
 						stopped_downloads_list.push(download);
 					}
-					
+
 					try {
-						
+
 						let dl_button = document.getElementById('downloads-button');
-						
+
 						dl_button.setAttribute("tooltiptext",
-							"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
-							"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
-							"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
+						"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
+						"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+						"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
 							"Cancelled downloads: " + cancelled_downloads_list.length + '\r\n' +
 							"Progress: " + dl_button.style.getPropertyValue("--download-progress-pcent")
 						);	
-						
+
 						if(stopped_downloads_list.length != 0) {
 							dl_button.style.setProperty("color", dl_text_error_color, "important");
 							dl_button.style.setProperty("font-weight", "bold", "important");
@@ -188,7 +190,7 @@ var DownloadWindowObject = {
 							}
 							else {
 								dl_button.style.setProperty("color", dl_text_ongoing_color, "important");
-								dl_button.style.removeProperty("font-weight");
+							dl_button.style.removeProperty("font-weight");
 							}
 						}
 						else
@@ -205,30 +207,30 @@ var DownloadWindowObject = {
 							dl_button.style.removeProperty("font-weight");
 							dl_button.removeAttribute("open");
 						}
-						
+
 					}
 					catch(e) {}
-					
+
 				},
-				
+
 				onDownloadRemoved: download => {
-					
+
 					let index = ongoing_downloads_list.indexOf(download);
 					if(index != -1)
 						ongoing_downloads_list.splice(index,1);
-					
+
 					index = cancelled_downloads_list.indexOf(download);
 					if(index != -1)
 						cancelled_downloads_list.splice(index,1);
-										
+
 					index = stopped_downloads_list.indexOf(download);
 					if(index != -1)
 						stopped_downloads_list.splice(index,1);
-										
+
 					index = successful_downloads_list.indexOf(download);
 					if(index != -1)
 						successful_downloads_list.splice(index,1);
-					
+
 					if(
 						ongoing_downloads_list.length != 0 ||
 						cancelled_downloads_list.length != 0 ||
@@ -237,17 +239,17 @@ var DownloadWindowObject = {
 					)
 					{
 						try {
-							
+
 							let dl_button = document.getElementById('downloads-button');
-							
+
 							dl_button.setAttribute("tooltiptext",
 								"Ongoing downloads: " + ongoing_downloads_list.length + '\r\n' +
-								"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+								"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +
 								"Stopped downloads: " + stopped_downloads_list.length + '\r\n' +
 								"Cancelled downloads: " + cancelled_downloads_list.length + '\r\n' +
 								"Progress: " + dl_button.style.getPropertyValue("--download-progress-pcent")
 							);
-							
+
 							if(stopped_downloads_list.length != 0) {
 								dl_button.style.setProperty("color", dl_text_error_color, "important");
 								dl_button.style.setProperty("font-weight", "bold", "important");
@@ -272,9 +274,9 @@ var DownloadWindowObject = {
 								dl_button.style.setProperty("color", dl_text_all_completed_color, "important");
 								dl_button.style.setProperty("font-weight", "bold", "important");
 								dl_button.setAttribute("tooltiptext",
-									"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +					
+									"Successful downloads: " + successful_downloads_list.length	+ '\r\n' +
 									"Progress: 100%"
-								);	
+								);
 							}
 							
 						} catch(e) {}
@@ -287,64 +289,64 @@ var DownloadWindowObject = {
 							dl_button.style.removeProperty("font-weight");
 							dl_button.removeAttribute("open");
 						} catch(e) {}
-					
+
 				}
 			};
-			
+
 			dl_list.addView(dl_view_events);
 
 		}
 		catch(e) { console.log("download_button_open_list_directly.js:"); console.log(e); }
 
 		function setupMoreGUI(ev) {
-			
+
 			var stack;
-			
+
 			try {
 				stack = DownloadWindow.document.getElementsByTagName("stack")[0];
 			}
 			catch(exc) {
 				stack = null;
 			}
-			
+
 			var bottom_box = document.createXULElement("box");
-			
+
 			var div_container = document.createElement("div");
 			div_container.setAttribute("style","max-height:480px;");
-			
+
 			var clear_button = document.createElement("button");
 			clear_button.setAttribute("align", "center");
 			clear_button.append("Clear successful downloads");
-			
+
 			var retry_all_button = document.createElement("button");
 			retry_all_button.setAttribute("align", "center");
 			retry_all_button.append("Retry All");
-			
+
 			bottom_box.append(clear_button);
 			bottom_box.append(retry_all_button);
 			bottom_box.setAttribute("style","background-color: #F0F0F0;");
 			bottom_box.setAttribute("flex","0");
-			
+
 			if(stack == null)
 			{
-				
+
 				stack = document.createXULElement("stack");
 				stack.setAttribute("flex","1");
-				
-				DownloadWindow.document.lastChild.insertBefore(stack,DownloadWindow.document.getElementById("downloadsRichListBox"));
-				
-				stack.append(DownloadWindow.document.getElementById("downloadsRichListBox"));
+
+				DownloadWindow.document.lastChild.insertBefore(stack,DownloadWindow.document.getElementById("downloadsListBox"));
+
+				stack.append(DownloadWindow.document.getElementById("downloadsListBox"));
 				stack.append(DownloadWindow.document.getElementById("downloadsListEmptyDescription"));
-				
+
 			}
-			
+
 			stack.after(bottom_box);
-			
-			DownloadWindow.document.getElementById("downloadsRichListBox").setAttribute("style","max-height:480px;");
-			
+
+			DownloadWindow.document.getElementById("downloadsListBox").setAttribute("style","max-height:480px;");
+
 			DownloadWindow.removeEventListener('DOMContentLoaded',setupMoreGUI);
 			DownloadWindow.onresize = function(event) {
-				
+
 				if((DownloadWindow.outerHeight > 3 * window.screen.availHeight / 4) && (stack.nextSibling == bottom_box)) {
 					stack.before(bottom_box);
 				}
@@ -352,27 +354,27 @@ var DownloadWindowObject = {
 				if((DownloadWindow.outerHeight <= 3 * window.screen.availHeight / 4) && (stack.nextSibling != bottom_box)) {
 					stack.after(bottom_box);
 				}
-				
+
 			};
-			
+
 			clear_button.onclick = 
 				/// Cannot clear downloads from history unless version 70+
 				async function ClearSuccessfulDownloads() {
-					
+
 					var downloads_list_global = await Downloads.getList(Downloads.ALL);
 					var downloads_list = await downloads_list_global.getAll();
 					var i;
 					let download_button = document.getElementById('downloads-button');
-						
+
 					Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
-					
+
 					var downloads_history_list_global = await DownloadHistory.getList(Downloads.ALL);
 					var downloads_history_list = await downloads_history_list_global.getAll();
 
 					for(i = 0; i < downloads_history_list.length; i++) {
 						if(downloads_history_list[i].succeeded) {
 							try { await PlacesUtils.history.remove(downloads_history_list[i].source.url); } catch (e) {}
-							await downloads_history_list[i].finalize(true);		
+							await downloads_history_list[i].finalize(true);
 						}
 					}
 
@@ -382,44 +384,44 @@ var DownloadWindowObject = {
 							await downloads_list_global.remove(downloads_list[i]);
 							await downloads_list[i].finalize(true);
 						}
-					}		
-			
+					}
+
 				};
-		
+
 			retry_all_button.onclick = 
 				/// Cannot retry downloads from history unless version 70+
 				async function RetryAll() {
-					
+
 					var i;
 					var item_to_retry = null;
 					let download_button = document.getElementById('downloads-button');
-					
+
 					try {
-						
+
 						var downloads_list_global = await Downloads.getList(Downloads.ALL);
 						var downloads_list = await downloads_list_global.getAll();
-						
+
 						for(i = 0; item_to_retry === null && i < downloads_list.length; i++) {
 							if(downloads_list[i].stopped && !downloads_list[i].succeeded && !downloads_list[i].canceled) {
 								item_to_retry = downloads_list[i];
 							}
 						}
-						
+
 						if(item_to_retry === null) {
-							
+
 							Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
-							
+
 							var downloads_history_list_global = await DownloadHistory.getList(Downloads.ALL);
 							var downloads_history_list = await downloads_history_list_global.getAll();
 
 							for(i = 0; item_to_retry === null && i < downloads_history_list.length; i++) {
 								if(downloads_history_list[i].stopped && !downloads_history_list[i].succeeded && !downloads_history_list[i].canceled) {	
-									item_to_retry = downloads_history_list[i];						
+									item_to_retry = downloads_history_list[i];
 								}
 							}
-						
+
 						}
-						
+
 						if(item_to_retry !== null) {
 							try { await item_to_retry.start(); } catch(e) {}
 							setTimeout(retry_all_button.onclick,1000);
@@ -429,57 +431,57 @@ var DownloadWindowObject = {
 					catch(e) {
 						setTimeout(retry_all_button.onclick,1000);
 					}
-					
+
 				};
-			
+
 		}
 
 		/// Cannot retry downloads from history unless version 70+
 		async function RetryAllMidClick() {
-			
+
 			var i;
 			var item_to_retry = null;
 			let download_button = document.getElementById('downloads-button');
-			
+
 			try {
-				
+
 				var downloads_list_global = await Downloads.getList(Downloads.ALL);
 				var downloads_list = await downloads_list_global.getAll();
-				
+
 				for(i = 0; item_to_retry === null && i < downloads_list.length; i++) {
 					if(downloads_list[i].stopped && !downloads_list[i].succeeded && !downloads_list[i].canceled) {
 						item_to_retry = downloads_list[i];
 					}
 				}
-				
+
 				if(item_to_retry === null) {
-					
+
 					Components.utils.import("resource://gre/modules/DownloadHistory.jsm");
-					
+
 					var downloads_history_list_global = await DownloadHistory.getList(Downloads.ALL);
 					var downloads_history_list = await downloads_history_list_global.getAll();
 
 					for(i = 0; item_to_retry === null && i < downloads_history_list.length; i++) {
 						if(downloads_history_list[i].stopped && !downloads_history_list[i].succeeded && !downloads_history_list[i].canceled) {	
-							item_to_retry = downloads_history_list[i];						
+							item_to_retry = downloads_history_list[i];
 						}
 					}
-				
+
 				}
-				
+
 				if(item_to_retry !== null) {
 					try { await item_to_retry.start(); } catch(e) {}
 					setTimeout(RetryAllMidClick,1000);
 				}
-				
+
 			}
 			catch(e) {
 				setTimeout(RetryAllMidClick,1000);
 			}
-			
+
 		};
 	}
-	
+
 }
 
 DownloadWindowObject.init();
