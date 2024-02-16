@@ -75,6 +75,7 @@ if(dl_button != null) {
 	dl_button.onclick = (event) =>
 		{
 
+			//left click: try loading the password manager focused on (part of) the current url
 			if(event.button == '0') {
 
 				let filterTxt;
@@ -95,6 +96,7 @@ if(dl_button != null) {
 
 			}
 			
+			//middle click: just load the password manager without caring about current url
 			if(event.button=='1') {
 				try {
 					gBrowser.selectedTab = gBrowser.addTrustedTab('about:logins');
