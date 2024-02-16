@@ -1,4 +1,4 @@
-// 'Open Password Manager' button for Firefox 102, by Aris then modified by BoomerangAide
+// 'Open Password Manager' button for Firefox 91+ by Aris, then modified by BoomerangAide
 
 var CustomCSSforFx_icon_filename = 'padlock_classic.png'; //change to the filename (without path) of an icon from CustomCSSforFx
 
@@ -6,11 +6,12 @@ var CustomCSSforFx_icon_filename = 'padlock_classic.png'; //change to the filena
 
 	try {
 
+		//Cu.importGlobalProperties(['PathUtils']); //for future version
 		Components.utils.import("resource:///modules/CustomizableUI.jsm");
-		Components.utils.import("resource://gre/modules/LoginHelper.jsm");
-
-		var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", {});
+  		ChromeUtils.importESModule("resource:///modules/CustomizableUI.sys.mjs");
 		var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"].getService(Components.interfaces.nsIStyleSheetService);
+
+		var appversion = parseInt(Services.appinfo.version);
 
 		if(!CustomizableUI.getWidget("pw_manager_button")) {
 				  
@@ -40,6 +41,7 @@ var CustomCSSforFx_icon_filename = 'padlock_classic.png'; //change to the filena
 			button_icon = 
 				'file:///' +
 				Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile).path.replace(/\134/g,'/') +
+				//PathUtils.profileDir +  //for future version
 				'/chrome/image/' +
 				CustomCSSforFx_icon_filename;
 		}
@@ -91,6 +93,12 @@ if(dl_button != null) {
 					LoginHelper.openPasswordManager(window, { filterString: gBrowser.currentURI.host, entryPoint: 'mainmenu' })
 				} 
 
+			}
+			
+			if(event.button=='1') {
+				try {
+					gBrowser.selectedTab = gBrowser.addTrustedTab('about:logins');
+				} catch (e) {}
 			}
 			
 		};
