@@ -39,6 +39,7 @@ var DownloadWindowObject = {
 								DownloadWindow.focus();
 							else {
 								DownloadWindow.close();
+								download_button.removeAttribute("open");
 							}
 						}
 						else
