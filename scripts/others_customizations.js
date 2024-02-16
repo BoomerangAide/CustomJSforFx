@@ -1,12 +1,21 @@
 //For Firefox 102 ESR
 
-var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", {});
-
 var OthersCustomizations = {
 
-	init: async function() {
+	init: async function(restarts) {
 
-		await Services.search.wrappedJSObject.init();
+		var noscript_button = Array.from(document.getElementsByTagName('toolbarbutton')).find(elem => elem.getAttribute('label').includes('NoScript'));
+		var navbar_var = document.querySelector("#nav-bar");
+
+		if(navbar_var == undefined) {
+			if(restarts < 20) {
+				setTimeout(OthersCustomizations.init, 1000, restarts+1);
+			}
+			else {
+				console.log("OthersCustomizations failed to load.");
+			}
+			return;
+		}
 
 		///
 		/// Move Back and Forward button to personal toolbar
@@ -33,6 +42,15 @@ var OthersCustomizations = {
 					back_button.nextSibling
 				);
 			}
+		}
+		catch(e) {}
+
+		///
+		/// Move Extensions button to tab bar and remove "all tabs" button from there
+		///
+		try {
+			document.getElementById("alltabs-button").after(document.getElementById("unified-extensions-button"));
+			document.getElementById("alltabs-button").style.setProperty("visibility","collapse");
 		}
 		catch(e) {}
 
@@ -66,7 +84,7 @@ var OthersCustomizations = {
 		try {
 			initiateNoScriptButtonSearchAndProcessing(0);
 		}
-		catch(e) { console.log(e);}
+		catch(e) {}
 
 		function initiateNoScriptButtonSearchAndProcessing(attemptsCount = 0) {
 
@@ -75,6 +93,9 @@ var OthersCustomizations = {
 			if(noscript_button == undefined) {
 				if(attemptsCount < 20) {
 					setTimeout(initiateNoScriptButtonSearchAndProcessing, 1000, attemptsCount+1);
+				}
+				else {
+					console.log("NoScript not found, ignore if normal");
 				}
 			}
 			else {
@@ -88,6 +109,16 @@ var OthersCustomizations = {
 				mutationObserver.observe(noscript_button, { attributes : true, attributeFilter : [ "label" ] });
 
 			}
+		}
+
+		///
+		/// Navbar height is broken again, setting height manually again
+		///
+		try {
+			navbar_var.style.setProperty("height", "26px");
+		}
+		catch(e) {
+			console.log(e);
 		}
 
 		///
@@ -120,8 +151,9 @@ var OthersCustomizations = {
 
 					new_height = new_height + "px";
 
-					if(popup_autocomplete.getAttribute("height") != new_height)
-						popup_autocomplete.setAttribute("height", new_height);
+					if(popup_autocomplete.firstChild.style.getPropertyValue("height") != new_height) {
+						popup_autocomplete.firstChild.style.setProperty("height", new_height);
+					}
 
 					this_observer.observe(popup_autocomplete, { childList: true, subtree: true, attributes: true, attributeFilter : [ "collapsed" ] });
 
@@ -151,10 +183,10 @@ var OthersCustomizations = {
 			let login_entries_images = document.querySelectorAll(".autocomplete-richlistitem[originaltype='loginWithOrigin'] > div > .ac-site-icon");
 			let zoom_value = ZoomManager.getZoomForBrowser(gBrowser.selectedBrowser) * 100;
 
-			if(zoom_button.getAttribute("hidden") == "true" || zoom_value <= 100) {
+			if(zoom_button.getAttribute("hidden") == "true" || zoom_value <= 110) {
 
 				for (let i = 0; i < login_entries.length; i++) {
-					login_entries[i].style.setProperty("font-size", "100%");
+					login_entries[i].style.setProperty("font-size", "110%");
 					login_entries_images[i].style.removeProperty("align-self");
 				}
 
@@ -178,4 +210,4 @@ var OthersCustomizations = {
 	}
 }
 
-OthersCustomizations.init();
+OthersCustomizations.init(0);
