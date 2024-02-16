@@ -1,4 +1,4 @@
-// 'Alternative search bar' script for Firefox 91+ by Aris
+// 'Alternative search bar' script for Firefox 102+ by Aris
 //
 // Thanks to UndeadStar (aka BoomerangAide) for Fx 69+ improvements
 // https://github.com/Aris-t2/CustomJSforFx/issues/11
@@ -8,6 +8,9 @@
 //
 // Thanks to anomiex for the setIcon workaround on Fx 77+
 // https://github.com/Aris-t2/CustomJSforFx/issues/33
+//
+// Thanks to 117649 for the Fx107+ fix
+// https://github.com/Aris-t2/CustomJSforFx/pull/73
 //
 // Idea based on 'search revert' script by '2002Andreas':
 // https://www.camp-firefox.de/forum/viewtopic.php?f=16&t=112673&start=2010#p1099758
@@ -51,6 +54,7 @@ var searchsettingslabel = "G\u00E9rer les moteurs de recherche..."; // set label
 // Configuration area - end
 
 var isInCustomize = 1; //start at 1 to set it once at startup
+var appversion = parseInt(Services.appinfo.version);
 
 var AltSearchbar = {
 	
@@ -96,14 +100,28 @@ var AltSearchbar = {
 		function selectEngineByClickOneoffsButton() {
 			var searchoneoffs = searchbar.textbox.popup.oneOffButtons;
 			searchoneoffs.container.addEventListener("click", (event) => {
-				if (!(event instanceof KeyboardEvent) && (event.button == 0)) {
+				
+				if ((event.target.className == "searchbar-engine-one-off-item") && !(event instanceof KeyboardEvent) && (event.button == 0)) {
 					event.stopPropagation();
-					event.target.classList.add("search-one-offs-context-set-default");
-					searchoneoffs._contextEngine = event.target.engine;
-					searchoneoffs._on_command(event);
-					searchoneoffs._contextEngine = null;
+					searchoneoffs.contextMenuPopup._triggerButton = event.target;
+					searchoneoffs.contextMenuPopup.querySelectorAll('[class^="search-one-offs-context-set-default"]:not([hidden])')[0]
+						.dispatchEvent(new Event('command', {
+							bubbles: true,
+							cancelable: true
+						}));
+					
+					//WAS WORKING ON 115.7? KEPT FOR RESTORATION IF THE ABOVE IS TOO MUCH NEW
+/* 					if (!(event instanceof KeyboardEvent) && (event.button == 0)) {
+						event.stopPropagation();
+						event.target.classList.add("search-one-offs-context-set-default");
+						searchoneoffs._contextEngine = event.target.engine;
+						searchoneoffs._on_command(event);
+						searchoneoffs._contextEngine = null;
+					} */
+					
 				}
-			}, true);
+			}
+			, true);
 		};
 
 		// hide placeholder
@@ -415,76 +433,113 @@ var AltSearchbar = {
 
 		}; //createOldSelectionPopup
 
-		// doSearch function taken from Firefox 85+ internal 'searchbar.js' file and added modifications
-		searchbar.doSearch = function(aData, aWhere, aEngine, aParams, isOneOff = false) {
+		//WAS WORKING ON 115.7? KEPT FOR RESTORATION IF THE ABOVE IS TOO MUCH NEW
+		// // doSearch function taken from Firefox 85+ internal 'searchbar.js' file and added modifications
+		// searchbar.doSearch = function(aData, aWhere, aEngine, aParams, isOneOff = false) {
 
-			let textBox = this._textbox;
-			let engine = aEngine || this.currentEngine;
+			// let textBox = this._textbox;
+			// let engine = aEngine || this.currentEngine;
 
-			// Save the current value in the form history
-			if (
-				aData &&
-				!PrivateBrowsingUtils.isWindowPrivate(window) &&
-				this.FormHistory.enabled &&
-				aData.length <=
-					this.SearchSuggestionController.SEARCH_HISTORY_MAX_VALUE_LENGTH
-			)
-			{
-				this.FormHistory.update(
-					{
-						op: "bump",
-						fieldname: textBox.getAttribute("autocompletesearchparam"),
-						value: aData,
-						source: engine.name,
-					},
-					{
-						handleError(aError) {
-							Cu.reportError(
-								"Saving search to form history failed: " + aError.message
-							);
-						},
-					}
-				);
-			}
+			// // Save the current value in the form history
+			// if (
+				// aData &&
+				// !PrivateBrowsingUtils.isWindowPrivate(window) &&
+				// this.FormHistory.enabled &&
+				// aData.length <=
+					// this.SearchSuggestionController.SEARCH_HISTORY_MAX_VALUE_LENGTH
+			// )
+			// {
+				// this.FormHistory.update(
+					// {
+						// op: "bump",
+						// fieldname: textBox.getAttribute("autocompletesearchparam"),
+						// value: aData,
+						// source: engine.name,
+					// },
+					// {
+						// handleError(aError) {
+							// Cu.reportError(
+								// "Saving search to form history failed: " + aError.message
+							// );
+						// },
+					// }
+				// );
+			// }
 
-			let submission = engine.getSubmission(aData, null, "searchbar");
+			// let submission = engine.getSubmission(aData, null, "searchbar");
 
-			// If we hit here, we come either from a one-off, a plain search or a suggestion.
-			const details = {
-				isOneOff,
-				isSuggestion: !isOneOff && this.telemetrySelectedIndex != -1,
-				url: submission.uri,
-			};
+			// // If we hit here, we come either from a one-off, a plain search or a suggestion.
+			// const details = {
+				// isOneOff,
+				// isSuggestion: !isOneOff && this.telemetrySelectedIndex != -1,
+				// url: submission.uri,
+			// };
 
-			this.telemetrySelectedIndex = -1;
+			// this.telemetrySelectedIndex = -1;
 
-			BrowserSearchTelemetry.recordSearch(
-				gBrowser.selectedBrowser,
-				engine,
-				"searchbar",
-				details
-			);
-			// null parameter below specifies HTML response for search
-			let params = {
-				postData: submission.postData,
-			};
-			if (aParams) {
-				for (let key in aParams) {
-					params[key] = aParams[key];
+			// BrowserSearchTelemetry.recordSearch(
+				// gBrowser.selectedBrowser,
+				// engine,
+				// "searchbar",
+				// details
+			// );
+			// // null parameter below specifies HTML response for search
+			// let params = {
+				// postData: submission.postData,
+			// };
+			// if (aParams) {
+				// for (let key in aParams) {
+					// params[key] = aParams[key];
+				// }
+			// }
+
+			// openTrustedLinkIn(submission.uri.spec, aWhere, params);
+
+			// if(clear_searchbar_after_search)
+				// this.value = '';
+
+			// if(revert_to_first_engine_after_search) {
+				// searchbar.currentEngine = searchbar.engines[0];
+				// updateStyleSheet();
+			// }
+
+		// };
+		
+		ChromeUtils.defineESModuleGetters(lazy, {
+			SearchSuggestionController:
+			"resource://gre/modules/SearchSuggestionController.sys.mjs",
+		});
+	
+		if(appversion < 120) {
+	
+		  XPCOMUtils.defineLazyModuleGetters(lazy, {
+			FormHistory: "resource://gre/modules/FormHistory.sys.mjs",
+		  });
+	
 				}
-			}
+	
+		if(appversion >= 120) {
+			
+		  ChromeUtils.defineESModuleGetters(lazy, {
+			FormHistory: "resource://gre/modules/FormHistory.sys.mjs",
+		  });
+		}
+	
+		var _doSearch = searchbar.doSearch.toString();
+		searchbar.doSearch = Cu.getGlobalForObject(this)["ev"+"al"](
+			"(" +(_doSearch.startsWith("function")? "":"function ") + _doSearch.slice(0,-2) +
+	`
+				if(clear_searchbar_after_search)
+					this.value = '';
+	
+				if(revert_to_first_engine_after_search) {
+					searchbar.currentEngine = searchbar.engines[0];
+					updateStyleSheet();
+				}
+	`
+	        + _doSearch.slice(-2) + ")"
+		).bind(searchbar);
 
-			openTrustedLinkIn(submission.uri.spec, aWhere, params);
-
-			if(clear_searchbar_after_search)
-				this.value = '';
-
-			if(revert_to_first_engine_after_search) {
-				searchbar.currentEngine = searchbar.engines[0];
-				updateStyleSheet();
-			}
-
-		};
 
 		// Workaround for the deprecated setIcon function
 		var oldUpdateDisplay = searchbar.updateDisplay;
@@ -494,185 +549,392 @@ var AltSearchbar = {
 		};
 
 		// main style sheet
+		//WAS WORKING ON 115.7? KEPT FOR RESTORATION IF THE ABOVE IS TOO MUCH NEW
+		// function updateStyleSheet() {
+
+			// var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"].getService(Components.interfaces.nsIStyleSheetService);
+
+			// var hide_oneoff_search_engines_code = '';
+			// var show_search_engine_names_code = '';
+	  		// var show_search_engine_names_code102 = '';
+			// var show_search_engine_names_with_scrollbar_code = '';
+			// var hide_addengines_plus_indicator_code = '';
+			// var switch_glass_and_engine_icon_code = '';
+
+			// if(hide_oneoff_search_engines)
+				// hide_oneoff_search_engines_code=' \
+					// #PopupSearchAutoComplete .search-panel-header, \
+					// #PopupSearchAutoComplete .search-one-offs { \
+					// display: none !important; \
+					// } \
+				// ';
+
+			// if(hide_addengines_plus_indicator)
+				// hide_addengines_plus_indicator_code=' \
+				 // .searchbar-search-button[addengines=true]::after { \
+					 // visibility: hidden !important; \
+				 // } \
+				 // ';
+
+			// if(show_search_engine_names && !hide_oneoff_search_engines)
+			// show_search_engine_names_code=' \
+				// #PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item { \
+					// appearance:none !important; \
+					// min-width: 0 !important; \
+					// width: 100% !important; \
+					// border: unset !important; \
+					// height: 22px !important; \
+					// background-image: unset !important; \
+					// padding-inline-start: 3px !important; \
+				// } \
+				// #PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item:not([tooltiptext]) { \
+					// display: none !important; \
+				// } \
+				// #PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item .button-box { \
+					// display: block !important; \
+					// padding-inline-start: 4px !important; \
+					// margin-top: 3px !important; \
+				// } \
+				// #PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item::after { \
+					// -moz-appearance: none !important; \
+					// display: inline !important; \
+					// content: attr(tooltiptext) !important; \
+					// position: relative !important; \
+					// top: -9px !important; \
+					// padding-inline-start: 25px !important; \
+				// } \
+				// #PopupSearchAutoComplete .search-panel-one-offs { \
+					// min-height: unset !important; \
+					// height: unset !important; \
+					// max-height: unset !important; \
+				// } \
+				// #PopupSearchAutoComplete .search-setting-button { \
+					// align-self: unset !important; \
+					// margin-top: -22px !important; \
+					// position: absolute !important; \
+				// } \
+				// ';
+
+			// if(show_search_engine_names_with_scrollbar && !hide_oneoff_search_engines && show_search_engine_names)
+			 // show_search_engine_names_with_scrollbar_code=' \
+				// #PopupSearchAutoComplete .search-one-offs { \
+					// height: '+show_search_engine_names_with_scrollbar_height+' !important; \
+					// max-height: '+show_search_engine_names_with_scrollbar_height+' !important; \
+					// overflow-y: scroll !important; \
+					// overflow-x: hidden !important; \
+				// } \
+				// \
+				// ';
+
+			// if(switch_glass_and_engine_icon)
+			 // switch_glass_and_engine_icon_code=' \
+				// search-go-button { \
+					// list-style-image: url('+document.getElementById("searchbar").currentEngine.iconURI.spec+') !important; \
+					// transform: scaleX(1) !important; \
+				// } \
+				// .searchbar-search-button .searchbar-search-icon { \
+					// list-style-image: url("chrome://global/skin/icons/search-glass.svg") !important; \
+					// -moz-context-properties: fill, fill-opacity !important; \
+					// fill-opacity: 1.0 !important; \
+					// fill: #3683ba !important; \
+				// } \
+				// .searchbar-search-button:hover .searchbar-search-icon { \
+					// fill: #1d518c !important; \
+				// } \
+				// .searchbar-search-button:active .searchbar-search-icon { \
+					// fill: #00095d !important; \
+				// } \
+				// \
+				// ';
+
+			// let image;
+			
+			// try {
+				// image = 'url(' + document.getElementById("searchbar").currentEngine.iconURI.spec + ')';
+			// }
+			// catch(exc) {
+				// image = 'none';
+			// }
+
+			// var uri = Services.io.newURI("data:text/css;charset=utf-8," + encodeURIComponent(' \
+			// \
+			// #search-container{ min-width: 20px !important } \
+			// #searchbuttonpopup {\
+			 // margin-inline-start: -1px; \
+			// } \
+			// .searchbar-search-button .searchbar-search-icon { \
+				// list-style-image: '+image+' !important; \
+			// } \
+			// .search-go-button { \
+				// list-style-image: url("chrome://global/skin/icons/search-glass.svg") !important; \
+				// -moz-context-properties: fill, fill-opacity !important; \
+				// fill-opacity: 1.0 !important; \
+				// fill: #3683ba !important; \
+				// transform: scaleX(-1) !important; \
+				// background: unset !important; \
+				// margin-inline-end: 4px !important; \
+			// } \
+			// .search-go-button:hover { \
+				// fill: #1d518c !important; \
+			// } \
+			// .search-go-button:active { \
+				// fill: #00095d !important; \
+			// } \
+			// .search-go-button[hidden="true"] { \
+				// display: block !important; \
+			// } \
+			// .searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay, \
+			// .searchbar-search-button:not([addengines=true]) > .searchbar-search-icon-overlay { \
+				// list-style-image: url("chrome://global/skin/icons/arrow-down-12.svg") !important; \
+				// -moz-context-properties: fill !important; \
+				// margin-inline-start: -6px !important; \
+				// margin-inline-end: 2px !important; \
+				// width: 11px !important; \
+				// height: 11px !important; \
+			// } \
+			// .searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay { \
+				// margin-top: 0px !important; \
+			// } \
+			// .searchbar-search-button[addengines=true]::after { \
+				// content: " " !important; \
+				// background: url("chrome://browser/skin/search-indicator-badge-add.svg") center no-repeat !important; \
+				// display: block !important; \
+				// visibility: visible !important; \
+				// width: 11px !important; \
+				// height: 11px !important; \
+				// margin-inline-start: 18px !important; \
+				// margin-top: -11px !important; \
+				// position: absolute !important; \
+			// } \
+			// .searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay { \
+				// visibility: visible !important; \
+			// } \
+			 // \
+			// .custom-addengine-item > .menu-iconic-left::after { \
+				// position: absolute !important; \
+				// display: block; !important; \
+				// content: "" !important; \
+				// background: url("chrome://browser/skin/search-indicator-badge-add.svg") no-repeat center !important; \
+				// box-shadow: none  !important; \
+				// margin-top: -12px !important; \
+				// margin-inline-start: -4px !important; \
+				// width: 11px; !important; \
+				// height: 11px; !important; \
+				// min-width: 11px; !important; \
+				// min-height: 11px; !important; \
+			// } \
+			// '+hide_addengines_plus_indicator_code+' \
+			// '+hide_oneoff_search_engines_code+' \
+			// '+show_search_engine_names_code+' \
+			// '+show_search_engine_names_with_scrollbar_code+' \
+			// '+switch_glass_and_engine_icon_code+' \
+			// \
+			// '), null, null);
+
+			// // remove old style sheet
+			// if (sss.sheetRegistered(uri,sss.AGENT_SHEET)) {
+				// sss.unregisterSheet(uri,sss.AGENT_SHEET);
+			// }
+
+			// sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
+
+		// };
+		
 		function updateStyleSheet() {
 
 			var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"].getService(Components.interfaces.nsIStyleSheetService);
 
 			var hide_oneoff_search_engines_code = '';
 			var show_search_engine_names_code = '';
+	  		var show_search_engine_names_code102 = '';
 			var show_search_engine_names_with_scrollbar_code = '';
 			var hide_addengines_plus_indicator_code = '';
 			var switch_glass_and_engine_icon_code = '';
 
 			if(hide_oneoff_search_engines)
-				hide_oneoff_search_engines_code=' \
-					#PopupSearchAutoComplete .search-panel-header, \
-					#PopupSearchAutoComplete .search-one-offs { \
-					display: none !important; \
-					} \
-				';
+				hide_oneoff_search_engines_code=`
+		  			#PopupSearchAutoComplete .search-panel-header,
+		  			#PopupSearchAutoComplete .search-one-offs {
+						display: none !important;
+		  			}
+				`;
 
 			if(hide_addengines_plus_indicator)
-				hide_addengines_plus_indicator_code=' \
-				 .searchbar-search-button[addengines=true]::after { \
-					 visibility: hidden !important; \
-				 } \
-				 ';
+			   hide_addengines_plus_indicator_code=`
+			     .searchbar-search-button[addengines=true]::after {
+				   visibility: hidden !important;
+				 }
+	   			`;
 
 			if(show_search_engine_names && !hide_oneoff_search_engines)
-			show_search_engine_names_code=' \
-				#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item { \
-					-moz-appearance:none !important; \
-					min-width: 0 !important; \
-					width: 100% !important; \
-					border: unset !important; \
-					height: 22px !important; \
-					background-image: unset !important; \
-					padding-inline-start: 3px !important; \
-				} \
-				#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item:not([tooltiptext]) { \
-					display: none !important; \
-				} \
-				#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item .button-box { \
-					display: block !important; \
-					padding-inline-start: 4px !important; \
-					margin-top: 3px !important; \
-				} \
-				#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item::after { \
-					-moz-appearance: none !important; \
-					display: inline !important; \
-					content: attr(tooltiptext) !important; \
-					position: relative !important; \
-					top: -9px !important; \
-					padding-inline-start: 25px !important; \
-				} \
-				#PopupSearchAutoComplete .search-panel-one-offs { \
-					min-height: unset !important; \
-					height: unset !important; \
-					max-height: unset !important; \
-				} \
-				#PopupSearchAutoComplete .search-setting-button { \
-					align-self: unset !important; \
-					margin-top: -22px !important; \
-					position: absolute !important; \
-				} \
-				';
+			show_search_engine_names_code=`
+				#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item {
+		  			appearance: none !important;
+					min-width: 0 !important;
+					width: 100% !important;
+					border: unset !important;
+		  			height: 18px !important;
+					background-image: unset !important;
+		  			padding-inline-start: -3px !important;	/*default was 2*/
+		  			margin-inline-start: 5px !important;
+		  			margin-inline-end: 0 !important;
+				}
 
-			if(show_search_engine_names_with_scrollbar && !hide_oneoff_search_engines && show_search_engine_names)
-			 show_search_engine_names_with_scrollbar_code=' \
-				#PopupSearchAutoComplete .search-one-offs { \
-					height: '+show_search_engine_names_with_scrollbar_height+' !important; \
-					max-height: '+show_search_engine_names_with_scrollbar_height+' !important; \
-					overflow-y: scroll !important; \
-					overflow-x: hidden !important; \
-				} \
-				\
-				';
+				#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item::after {
+				  appearance: none !important;
+				  display: inline !important; /* was block */
+				  content: attr(tooltiptext) !important;
+				  position: relative !important;
+				  top: -25px !important; /*was not here */
+				  padding-inline-start: 25px !important; /*was 6*/
+				  min-width: 0 !important;
+				  width: 100% !important;
+				  white-space: nowrap !important;
+				}
 
-			if(switch_glass_and_engine_icon)
-			 switch_glass_and_engine_icon_code=' \
-				search-go-button { \
-					list-style-image: url('+document.getElementById("searchbar").currentEngine.iconURI.spec+') !important; \
-					transform: scaleX(1) !important; \
-				} \
-				.searchbar-search-button .searchbar-search-icon { \
-					list-style-image: url("chrome://global/skin/icons/search-glass.svg") !important; \
-					-moz-context-properties: fill, fill-opacity !important; \
-					fill-opacity: 1.0 !important; \
-					fill: #3683ba !important; \
-				} \
-				.searchbar-search-button:hover .searchbar-search-icon { \
-					fill: #1d518c !important; \
-				} \
-				.searchbar-search-button:active .searchbar-search-icon { \
-					fill: #00095d !important; \
-				} \
-				\
-				';
+				#PopupSearchAutoComplete .search-panel-one-offs {
+				  min-height: unset !important;
+				  height: unset !important;
+				  max-height: unset !important;
+				  line-height: unset !important;
+				}
 
-			let image;
+				#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item .button-box {
+				  display: inline !important;
+				}
+		
+				#PopupSearchAutoComplete  .search-setting-button {
+				  z-index: 1000 !important;
+				}
+		
+				#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item .button-box .button-icon {
+				  margin-top: 1px !important;
+				  padding-inline-start: 0px !important;
+				  margin-inline-start: 0px !important;
+				  position: relative !important;
+				}
+		   		`;
+
+	  if(appversion < 106) show_search_engine_names_code102=`
+		#PopupSearchAutoComplete .search-panel-one-offs .searchbar-engine-one-off-item::after {
+		  display: inline !important;
+		  top: -3px !important;
+		  bottom: 4px !important;
+		}
+	  `;
+
+	  if(show_search_engine_names_with_scrollbar && !hide_oneoff_search_engines && show_search_engine_names)
+	   show_search_engine_names_with_scrollbar_code=`
+		#PopupSearchAutoComplete .search-one-offs {
+		  height: `+show_search_engine_names_with_scrollbar_height+` !important;
+		  max-height: `+show_search_engine_names_with_scrollbar_height+` !important;
+		  overflow-y: scroll !important;
+		  overflow-x: hidden !important;
+		}
+		`;
 			
-			try {
-				image = 'url(' + document.getElementById("searchbar").currentEngine.iconURI.spec + ')';
+	  if(switch_glass_and_engine_icon)
+	   switch_glass_and_engine_icon_code=`
+		.search-go-button {
+		  list-style-image: url(`+document.getElementById("searchbar").currentEngine.iconURI.spec+`) !important;
+		  transform: scaleX(1) !important;
 			}
-			catch(exc) {
-				image = 'none';
+		.searchbar-search-button .searchbar-search-icon {
+		  list-style-image: url("chrome://global/skin/icons/search-glass.svg") !important;
+		  -moz-context-properties: fill, fill-opacity !important;
+		  fill-opacity: 1.0 !important;
+		  fill: #3683ba !important;
 			}
+		.searchbar-search-button:hover .searchbar-search-icon {
+		  fill: #1d518c !important;
+		}
+		.searchbar-search-button:active .searchbar-search-icon {
+		  fill: #00095d !important;
+		}
+		`;
+		
+		var image_search_button_icon;
+		
+		try {
+			image_search_button_icon = 'url(' + document.getElementById("searchbar").currentEngine.iconURI.spec + ')';
+		}
+		catch(exc) {
+			image_search_button_icon = 'none';
+		}
 
-			var uri = Services.io.newURI("data:text/css;charset=utf-8," + encodeURIComponent(' \
-			\
-			#search-container{ min-width: 20px !important } \
-			#searchbuttonpopup {\
-			 margin-inline-start: -1px; \
-			} \
-			.searchbar-search-button .searchbar-search-icon { \
-				list-style-image: '+image+' !important; \
-			} \
-			.search-go-button { \
-				list-style-image: url("chrome://global/skin/icons/search-glass.svg") !important; \
-				-moz-context-properties: fill, fill-opacity !important; \
-				fill-opacity: 1.0 !important; \
-				fill: #3683ba !important; \
-				transform: scaleX(-1) !important; \
-				background: unset !important; \
-				margin-inline-end: 4px !important; \
-			} \
-			.search-go-button:hover { \
-				fill: #1d518c !important; \
-			} \
-			.search-go-button:active { \
-				fill: #00095d !important; \
-			} \
-			.search-go-button[hidden="true"] { \
-				display: block !important; \
-			} \
-			.searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay, \
-			.searchbar-search-button:not([addengines=true]) > .searchbar-search-icon-overlay { \
-				list-style-image: url("chrome://global/skin/icons/arrow-down-12.svg") !important; \
-				-moz-context-properties: fill !important; \
-				margin-inline-start: -6px !important; \
-				margin-inline-end: 2px !important; \
-				width: 11px !important; \
-				height: 11px !important; \
-			} \
-			.searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay { \
-				margin-top: 0px !important; \
-			} \
-			.searchbar-search-button[addengines=true]::after { \
-				content: " " !important; \
-				background: url("chrome://browser/skin/search-indicator-badge-add.svg") center no-repeat !important; \
-				display: block !important; \
-				visibility: visible !important; \
-				width: 11px !important; \
-				height: 11px !important; \
-				margin-inline-start: 18px !important; \
-				margin-top: -11px !important; \
-				position: absolute !important; \
-			} \
-			.searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay { \
-				visibility: visible !important; \
-			} \
-			 \
-			.custom-addengine-item > .menu-iconic-left::after { \
-				position: absolute !important; \
-				display: block; !important; \
-				content: "" !important; \
-				background: url("chrome://browser/skin/search-indicator-badge-add.svg") no-repeat center !important; \
-				box-shadow: none  !important; \
-				margin-top: -12px !important; \
-				margin-inline-start: -4px !important; \
-				width: 11px; !important; \
-				height: 11px; !important; \
-				min-width: 11px; !important; \
-				min-height: 11px; !important; \
-			} \
-			'+hide_addengines_plus_indicator_code+' \
-			'+hide_oneoff_search_engines_code+' \
-			'+show_search_engine_names_code+' \
-			'+show_search_engine_names_with_scrollbar_code+' \
-			'+switch_glass_and_engine_icon_code+' \
-			\
-			'), null, null);
+	  var uri = Services.io.newURI("data:text/css;charset=utf-8," + encodeURIComponent(`
+		#search-container{
+		  min-width: 20px !important;
+		}
+		#searchbuttonpopup {
+		  margin-inline-start: -1px;
+		}
+		.searchbar-search-button .searchbar-search-icon {
+		  list-style-image: `+image_search_button_icon+` !important;
+		}
+		.search-go-button {
+		  list-style-image: url("chrome://global/skin/icons/search-glass.svg") !important;
+		  -moz-context-properties: fill, fill-opacity !important;
+		  fill-opacity: 1.0 !important;
+		  fill: #3683ba !important;
+		  transform: scaleX(-1) !important;
+		  background: unset !important;
+		  margin-inline-end: 4px !important;
+		}
+		.search-go-button:hover {
+		  fill: #1d518c !important;
+		}
+		.search-go-button:active {
+		  fill: #00095d !important;
+		}
+		.search-go-button[hidden="true"] {
+		  display: block !important;
+		}
+		.searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay,
+		.searchbar-search-button:not([addengines=true]) > .searchbar-search-icon-overlay {
+		  list-style-image: url("chrome://global/skin/icons/arrow-down-12.svg") !important;
+		  -moz-context-properties: fill !important;
+		  margin-inline-start: -6px !important;
+		  margin-inline-end: 2px !important;
+		  width: 11px !important;
+		  height: 11px !important;
+		}
+		.searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay {
+		  margin-top: 0px !important;
+		}
+		.searchbar-search-button[addengines=true]::after {
+		  content: " " !important;
+		  background: url("chrome://browser/skin/search-indicator-badge-add.svg") center no-repeat !important;
+		  display: block !important;
+		  visibility: visible !important;
+		  width: 11px !important;
+		  height: 11px !important;
+		  margin-inline-start: 18px !important;
+		  position: absolute !important;
+		}
+		.searchbar-search-button[addengines=true] > .searchbar-search-icon-overlay {
+		  visibility: visible !important;
+		}
+		.custom-addengine-item > .menu-iconic-left::after {
+		  position: absolute !important;
+		  display: block; !important;
+		  content: "" !important;
+		  background: url("chrome://browser/skin/search-indicator-badge-add.svg") no-repeat center !important;
+		  box-shadow: none  !important;
+		  margin-top: -12px !important;
+		  margin-inline-start: -4px !important;
+		  width: 11px; !important;
+		  height: 11px; !important;
+		  min-width: 11px; !important;
+		  min-height: 11px; !important;
+		}
+		`+hide_addengines_plus_indicator_code+`
+		`+hide_oneoff_search_engines_code+`
+		`+show_search_engine_names_code+`
+		`+show_search_engine_names_code102+`
+		`+show_search_engine_names_with_scrollbar_code+`
+		`+switch_glass_and_engine_icon_code+`
+	  `), null, null);
 
 			// remove old style sheet
 			if (sss.sheetRegistered(uri,sss.AGENT_SHEET)) {
