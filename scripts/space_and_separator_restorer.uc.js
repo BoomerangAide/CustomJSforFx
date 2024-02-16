@@ -1,21 +1,21 @@
-//Restore 'Space & Separator' items script for Firefox 102 by Aris then modified by BoomerangAide
-//
-//Default browser scripts always remove spaces and separators from default palette, so
-//because of that they are added to an own toolbar now.
-//
-//- spaces and separators can be moved to any toolbar
-//- to remove spaces or separators move them into palette
-//- configuration toolbar behaves like a default toolbar, items and buttons can be placed on it
-//- configuration toolbar is not visible outside customizing mode
-//- default "Flexible Space" item is hidden from palette and added to configuration toolbar
-//[!] BUG: do not move spaces, flexible spaces or separator to configuration toolbar or it will cause glitches
-//[!] BUG: do not move main 'space'-item to palette or it will be hidden until customizing mode gets reopened
+/*Restore 'Space & Separator' items script for Firefox 102 by Aris then modified by BoomerangAide
 
-//[!] Fix for WebExtensions with own windows by ??? (for 1-N scripts)
+  Default browser scripts always remove spaces and separators from default palette, so
+  because of that they are added to an own toolbar now.
 
+   - spaces and separators can be moved to any toolbar
+   - to remove spaces or separators move them into palette
+   - configuration toolbar behaves like a default toolbar, items and buttons can be placed on it
+   - configuration toolbar is not visible outside customizing mode
+   - default "Flexible Space" item is hidden from palette and added to configuration toolbar
+   [!] BUG: do not move spaces, flexible spaces or separator to configuration toolbar or it will cause glitches
+   [!] BUG: do not move main 'space'-item to palette or it will be hidden until customizing mode gets reopened
+
+   [!] Fix for WebExtensions with own windows by [chinese name] (for 1-N scripts)
+*/
 
 Components.utils.import("resource:///modules/CustomizableUI.jsm");
-var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", {});
+ChromeUtils.importESModule("resource:///modules/CustomizableUI.sys.mjs");
 var appversion = parseInt(Services.appinfo.version);
 
 var AddSeparator = {
@@ -99,75 +99,70 @@ var AddSeparator = {
 				//CSS
 				var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"].getService(Components.interfaces.nsIStyleSheetService);
 
-				var uri = Services.io.newURI("data:text/css;charset=utf-8," + encodeURIComponent('\
-				\
-				#configuration_toolbar { \
-				  -moz-appearance: none !important; \
-				  background-color: var(--toolbar-bgcolor); \
-				  background-image: var(--toolbar-bgimage); \
-				  background-clip: padding-box; \
-				  color: var(--toolbar-color, inherit); \
-				} \
-				#main-window:not([customizing]) #configuration_toolbar { \
-				  visibility: collapse; \
-				}\
-				#main-window[customizing] #configuration_toolbar #tb_config_tb_label { \
-				  font-weight: bold !important; \
-				}\
-				#main-window[customizing] #configuration_toolbar :-moz-any(#spacer,#separator,#spring) { \
-				  -moz-margin-start: 20px; \
-				}\
-				#main-window[customizing] #configuration_toolbar :-moz-any(#wrapper-spacer,#wrapper-separator,#wrapper-spring) .toolbarpaletteitem-label { \
-				  display: block !important; \
-				  -moz-margin-end: 20px; \
-				}\
-				#main-window[customizing] #wrapper-spacer #spacer { \
-				  margin: 2px 0 !important; \
-				}\
-				#main-window[customizing] #configuration_toolbar #wrapper-spring #spring { \
-				  margin: -1px 0 !important; \
-				  min-width: 80px !important; \
-				}\
-				#main-window[customizing] #configuration_toolbar > * { \
-				  padding: 10px !important; \
-				}\
-				#main-window[customizing] #configuration_toolbar > :-moz-any(#wrapper-spacer,#wrapper-separator,#wrapper-spring) { \
-				  border: 1px dotted !important; \
-				  -moz-margin-start: 2px !important; \
-				  -moz-margin-end: 2px !important; \
-				}\
-				#main-window[customizing] toolbarspacer { \
-				  border: 1px solid !important; \
-				}\
-				toolbar[orient="vertical"] toolbarseparator { \
-				  -moz-appearance: none !important; \
-				  border-top: 1px solid rgba(15,17,38, 0.5) !important; \
-				  border-bottom: 1px solid rgba(255,255,255, 0.3) !important; \
-				  margin: 2px 2px !important; \
-				  height: 1px !important; \
-				  width: 18px !important; \
-				}\
-				toolbar[orient="vertical"] toolbarspacer { \
-				  -moz-appearance: none !important; \
-				  height: 18px !important; \
-				  width: 18px !important; \
-				}\
-				#customization-palette toolbarpaletteitem[id^="wrapper-customizableui-special-spring"], \
-				#customization-palette-container :-moz-any(#spring,#wrapper-spring) { \
-				  display: none !important; \
-				}\
-				toolbarspring {\
-					min-width: 0px !important; \
-					max-width: 100% !important; \
-				}\
-				#nav-bar toolbartabstop {\
-					max-height: 28px !important; \
-				}\
-			  \
-			  '), null, null);
+				var uri = Services.io.newURI("data:text/css;charset=utf-8," + encodeURIComponent(`
+				#configuration_toolbar {
+				  appearance: none !important;
+				  background-color: var(--toolbar-bgcolor);
+				  background-image: var(--toolbar-bgimage);
+				  background-clip: padding-box;
+				  color: var(--toolbar-color, inherit);
+				}
+				#main-window:not([customizing]) #configuration_toolbar {
+				  visibility: collapse;
+				}
+				#main-window[customizing] #configuration_toolbar #tb_config_tb_label {
+				  font-weight: bold !important;
+				}
+				#main-window[customizing] #configuration_toolbar :is(#spacer,#separator,#spring) {
+				  margin-inline-start: 20px;
+				}
+				#main-window[customizing] #configuration_toolbar :is(#wrapper-spacer,#wrapper-separator,#wrapper-spring) .toolbarpaletteitem-label {
+				  display: block !important;
+				  margin-inline-end: 20px;
+				}
+				#main-window[customizing] #wrapper-spacer #spacer {
+				  margin: 2px 0 !important;
+				}
+				#main-window[customizing] #configuration_toolbar #wrapper-spring #spring {
+				  margin: -1px 0 !important;
+				  min-width: 80px !important;
+				}
+				#main-window[customizing] #configuration_toolbar > * {
+				  padding: 2px !important;
+				}
+				#main-window[customizing] #configuration_toolbar > :is(#wrapper-spacer,#wrapper-separator,#wrapper-spring) {
+				  border: 1px dotted !important;
+				  margin-inline-start: 2px !important;
+				  margin-inline-end: 2px !important;
+				}
+				#main-window[customizing] toolbarspacer {
+				  border: 1px solid !important;
+				}
+				toolbar[orient="vertical"] toolbarseparator {
+				  appearance: none !important;
+				  border-top: 1px solid rgba(15,17,38, 0.5) !important;
+				  border-bottom: 1px solid rgba(255,255,255, 0.3) !important;
+				  margin: 2px 2px !important;
+				  height: 1px !important;
+				}
+				toolbar[orient="vertical"] toolbarspacer {
+				  appearance: none !important;
+				  height: 18px !important;
+				  width: 18px !important;
+				}
+				#customization-palette toolbarpaletteitem[id^="wrapper-customizableui-special-spring"],
+				#customization-palette-container :is(#spring,#wrapper-spring) {
+				  display: none !important;
+				}
+				#main-window:not([customizing]) toolbar:not(#configuration_toolbar) toolbarspring {
+				  max-width: 100% !important;
+				}
+				/*#menubar-items + spacer {
+				  display: none !important;
+				}*/
+				`), null, null);
 
 				sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
-
 
 			}
 		} catch(e){}
