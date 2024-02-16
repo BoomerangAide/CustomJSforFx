@@ -1,17 +1,15 @@
 // config.js
-const Cu = Components.utils;
-
 try {
 
-  Cu.import("resource://gre/modules/Services.jsm");
-  Cu.import("resource://gre/modules/osfile.jsm");
+	Cu.importGlobalProperties(['PathUtils']);
 
-  if (!Services.appinfo.inSafeMode) {
+	if (!Services.appinfo.inSafeMode) {
 		
-	Services.scriptloader.loadSubScript(
-	  OS.Path.toFileURI(OS.Path.join(OS.Constants.Path.profileDir,
-		"./chrome/userChrome/userChromeJS.js")), this, "UTF-8");
+		Services.scriptloader.loadSubScript(
+			PathUtils.toFileURI(PathUtils.join(PathUtils.profileDir,
+			'chrome', 'js_stuff', 'userChromeJS.js')), this, "UTF-8"
+		);
 		
   };
-
+  
 } catch(e) {};
