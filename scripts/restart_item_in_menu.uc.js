@@ -12,7 +12,6 @@
   - invalidate caches from Session Saver add-on
 */
 
-var {Services} = Components.utils.import("resource://gre/modules/Services.jsm", {});
 var appversion = parseInt(Services.appinfo.version);
 var menuicon = false;
 var appmenuicon = false;
@@ -34,6 +33,7 @@ var RestartMenuFileAppItems = {
 			restartitem_filemenu.setAttribute("label", button_label);
 			restartitem_filemenu.setAttribute("id","fileMenu-restart-item");
 			restartitem_filemenu.setAttribute("accesskey", "R");
+	  		//restartitem_filemenu.setAttribute("acceltext", "R");
 			restartitem_filemenu.setAttribute("insertbefore", "menu_FileQuitItem");
 			restartitem_filemenu.setAttribute("onclick", "if (event.button == 0) {RestartMenuFileAppItems.restartApp(false);} else if (event.button == 1) {RestartMenuFileAppItems.restartApp(true)};");
 			restartitem_filemenu.setAttribute("oncommand", "RestartMenuFileAppItems.restartApp(false);");
