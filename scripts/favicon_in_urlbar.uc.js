@@ -1,12 +1,12 @@
-// 'Favicon in urlbars identity box' script for Firefox 102+, by Aris then modified by UndeadStar
+// 'Favicon in urlbars identity box' script for Firefox 115+ by Aris then modified by UndeadStar
 //
 // This script restores current pages favicon inside urlbar (aka location bar, address bar or awesome bar).
-// [!] If a page does not offer a favicon, browser branches default icon is shown.
+// [!] If a page does not offer a favicon, browser default branch icon is shown.
 // [!] In a multi-window environment pages without favicons might show wrong icons.
 // option: set icon for pages without favicon
 
 
-var i_icon = 'chrome://global/skin/icons/info.svg'; //was 'chrome://browser/skin/identity-icon.svg';
+var i_icon = 'chrome://global/skin/icons/info.svg';
 var sheet1 = 'chrome://global/skin/icons/Portrait.png';
 var sheet2 = 'file:///' +
 			  Components.classes["@mozilla.org/file/directory_service;1"].getService( Components.interfaces.nsIProperties).get("ProfD", Components.interfaces.nsIFile).path.replace(/\134/g,'/') +
@@ -17,7 +17,7 @@ var warning = 'chrome://global/skin/icons/warning.svg';
 
 var icon_for_pages_without_favicon = sheet2; // i_icon, sheet, globe or brand (colorized Fx channel icon)
 
-var favicon_click_opens_page_info_window = true;
+var favicon_click_opens_page_info_window = true; // opens page info window on click, if set to true
 
 var id_box = document.getElementById('identity-box');
 var id_icon = document.getElementById('identity-icon');
@@ -48,10 +48,10 @@ init: function() {
 		// update script every time tab attributes get modified (switch/open tabs/windows)
 		document.addEventListener("TabAttrModified", updateIcon, false);
 		document.addEventListener('TabSelect', updateIcon, false);
-		document.addEventListener('TabOpen', updateIcon, false);
+		//document.addEventListener('TabOpen', updateIcon, false); test FX 115.7
 		document.addEventListener('TabClose', updateIcon, false);
-		document.addEventListener('load', updateIcon, false);
-		document.addEventListener("DOMContentLoaded", updateIcon, false);
+		//document.addEventListener('load', updateIcon, false); test FX 115.7
+		//document.addEventListener("DOMContentLoaded", updateIcon, false); test FX 115.7
 
 		function updateIcon() {
 
